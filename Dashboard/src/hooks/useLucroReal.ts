@@ -12,10 +12,13 @@ export interface LucroCalculado {
   unidades: number;
   
   // Valores financeiros
-  precoVenda: number;
-  custoProduto: number;
-  comissaoMarketplace: number; // tarifa de venda e impostos
-  frete: number; // tarifas de envio (negativo, então invertemos)
+  precoVenda: number; // unitário
+  custoProduto: number; // total
+  custoPorUnidade: number; // unitário
+  comissaoMarketplace: number; // total (tarifa de venda e impostos)
+  comissaoPorUnidade: number; // unitário
+  frete: number; // total (tarifas de envio)
+  fretePorUnidade: number; // unitário
   receitaEnvio: number;
   impostos: number; // parte dos impostos na tarifa
   taxasExtras: number; // cancelamentos e reembolsos
@@ -168,6 +171,11 @@ export function useLucroReal() {
         }
       }
 
+      // Valores unitários para exibição na análise
+      const custoPorUnidade = custoProduto;
+      const comissaoPorUnidade = venda.unidades > 0 ? comissaoMarketplace / venda.unidades : 0;
+      const fretePorUnidade = venda.unidades > 0 ? frete / venda.unidades : 0;
+
       return {
         numeroVenda: venda.numeroVenda,
         dataVenda: venda.dataVenda,
@@ -176,10 +184,13 @@ export function useLucroReal() {
         tituloAnuncio: venda.tituloAnuncio,
         variacao: venda.variacao,
         unidades: venda.unidades,
-        precoVenda,
-        custoProduto: custoTotal,
-        comissaoMarketplace,
-        frete,
+        precoVenda, // já é unitário
+        custoProduto: custoTotal, // total para cálculos
+        custoPorUnidade, // unitário para exibição
+        comissaoMarketplace, // total
+        comissaoPorUnidade, // unitário
+        frete, // total
+        fretePorUnidade, // unitário
         receitaEnvio,
         impostos: comissaoMarketplace * 0.3, // estimativa
         taxasExtras,
