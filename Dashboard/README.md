@@ -104,8 +104,4 @@ export const useSalesData = () => {
 
 ---
 
-## Project info
 
-**URL**: https://lovable.dev/projects/eda23c7f-b4c6-48cb-aaaf-49ce211e07d3
-
-Projeto criado com [Lovable](https://lovable.dev)
