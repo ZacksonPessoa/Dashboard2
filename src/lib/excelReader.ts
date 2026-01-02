@@ -19,6 +19,13 @@ export interface ProductData {
   data?: string;
   quantidade?: number;
   
+  // Dados do comprador
+  comprador?: string;
+  cpf?: string;
+  endereco?: string;
+  cidade?: string;
+  cep?: string;
+  
   // Calculados
   lucroReal?: number;
   margem?: number;

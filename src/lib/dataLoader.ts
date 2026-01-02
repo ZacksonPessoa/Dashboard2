@@ -8,10 +8,144 @@ export interface ProductCost {
   frete?: number;
 }
 
+// Função auxiliar para parsear linha CSV considerando campos entre aspas
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++; // Pula o próximo "
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  result.push(current);
+  return result;
+}
+
+// Carrega dados do CSV NOVEMBRO_ML.xlsx - Vendas BR.csv (tem mais dados incluindo comprador)
+export async function loadSalesDataFromCSV(): Promise<ProductData[]> {
+  try {
+    const response = await fetch('/NOVEMBRO_ML.xlsx - Vendas BR.csv');
+    if (!response.ok) {
+      console.warn(`CSV não encontrado (status ${response.status}), tentando Excel...`);
+      return [];
+    }
+    const text = await response.text();
+    const lines = text.split('\n');
+    
+    if (lines.length < 2) {
+      console.warn('CSV vazio ou sem dados suficientes');
+      return [];
+    }
+    
+    const headers = parseCSVLine(lines[0]);
+    console.log('Cabeçalhos CSV encontrados:', headers.slice(0, 10));
+    const products: ProductData[] = [];
+    
+    // Mapeia índices das colunas
+    const getIndex = (names: string[]): number => {
+      for (const name of names) {
+        const idx = headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    };
+    
+    const nVendaIdx = getIndex(['n.º de venda', 'numero de venda', 'nº de venda']);
+    const dataIdx = getIndex(['data da venda', 'data de venda']);
+    const statusIdx = getIndex(['status']);
+    const unidadesIdx = getIndex(['unidades']);
+    const receitaIdx = getIndex(['receita por produtos', 'receita produtos']);
+    const skuIdx = getIndex(['sku']);
+    const tituloIdx = getIndex(['título do anúncio', 'titulo do anuncio']);
+    const precoUnitIdx = getIndex(['preço unitário', 'preco unitario']);
+    const custoIdx = getIndex(['custo por unidade', 'custo']);
+    const compradorIdx = getIndex(['comprador']);
+    const cpfIdx = getIndex(['cpf']);
+    const enderecoIdx = getIndex(['endereço', 'endereco']);
+    const cidadeIdx = getIndex(['cidade']);
+    const cepIdx = getIndex(['cep']);
+    
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const columns = parseCSVLine(line);
+      if (columns.length < 20) continue;
+      
+      const parseCurrency = (val: string): number => {
+        if (!val) return 0;
+        const cleaned = val.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.');
+        return Math.abs(parseFloat(cleaned) || 0);
+      };
+      
+      const product: ProductData = {
+        pedido: nVendaIdx >= 0 ? columns[nVendaIdx] : '',
+        data: dataIdx >= 0 ? columns[dataIdx] : '',
+        quantidade: unidadesIdx >= 0 ? parseInt(columns[unidadesIdx]) || 1 : 1,
+        precoVenda: precoUnitIdx >= 0 ? parseCurrency(columns[precoUnitIdx]) : (receitaIdx >= 0 ? parseCurrency(columns[receitaIdx]) : 0),
+        produto: tituloIdx >= 0 ? columns[tituloIdx] : '',
+        sku: skuIdx >= 0 ? columns[skuIdx] : '',
+        custo: custoIdx >= 0 ? parseCurrency(columns[custoIdx]) : 0,
+        comprador: compradorIdx >= 0 ? columns[compradorIdx] : '',
+        cpf: cpfIdx >= 0 ? columns[cpfIdx] : '',
+        endereco: enderecoIdx >= 0 ? columns[enderecoIdx] : '',
+        cidade: cidadeIdx >= 0 ? columns[cidadeIdx] : '',
+        cep: cepIdx >= 0 ? columns[cepIdx] : '',
+      };
+      
+      // Calcula valores derivados
+      product.totalVenda = product.precoVenda || 0;
+      product.totalCusto = (product.custo || 0);
+      product.lucroReal = product.totalVenda - product.totalCusto;
+      product.margem = product.totalVenda > 0 ? (product.lucroReal / product.totalVenda) * 100 : 0;
+      
+      if (product.produto || product.pedido) {
+        products.push(product);
+      }
+    }
+    
+    console.log(`Carregados ${products.length} produtos do CSV`);
+    if (products.length > 0) {
+      console.log('Exemplo de produto do CSV:', {
+        produto: products[0].produto,
+        comprador: products[0].comprador,
+        cpf: products[0].cpf,
+        endereco: products[0].endereco
+      });
+    }
+    return products;
+  } catch (error) {
+    console.error('Erro ao carregar dados do CSV:', error);
+    return [];
+  }
+}
+
 // Carrega dados do Excel NOVEMBRO_ML.xlsx
 export async function loadSalesData(): Promise<ProductData[]> {
   try {
-    // No navegador, precisamos fazer fetch do arquivo
+    // Tenta primeiro o CSV (tem mais dados)
+    const csvData = await loadSalesDataFromCSV();
+    if (csvData.length > 0) {
+      return csvData;
+    }
+    
+    // Fallback para Excel
     const response = await fetch('/NOVEMBRO_ML.xlsx');
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

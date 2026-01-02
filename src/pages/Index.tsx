@@ -6,12 +6,11 @@ import { Header } from "@/components/dashboard/Header";
 import { UpdateCard } from "@/components/dashboard/UpdateCard";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { DateRangePicker } from "@/components/dashboard/DateRangePicker";
-import { PerformanceDonut } from "@/components/dashboard/PerformanceDonut";
 import { TransactionList } from "@/components/dashboard/TransactionList";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { SalesReport } from "@/components/dashboard/SalesReport";
-import { PromoCard } from "@/components/dashboard/PromoCard";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
+import { useDateRange } from "@/contexts/DateRangeContext";
 import { loadSalesData, type ProductData } from "@/lib/dataLoader";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 
@@ -19,6 +18,7 @@ const Index = () => {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const userName = "Zackson Pessoa"; // TODO: Buscar do BD quando implementado
   const { selectedMarketplace } = useMarketplace();
+  const { dateRange } = useDateRange();
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -102,99 +102,100 @@ const Index = () => {
     return filterProductsByMarketplace(products, selectedMarketplace);
   }, [products, selectedMarketplace]);
 
-  // Calcular estatísticas do mês atual (ou todos os dados se não houver dados do mês atual)
-  const currentMonthStats = useMemo(() => {
+  // Calcular estatísticas do período selecionado
+  const currentPeriodStats = useMemo(() => {
     if (filteredProducts.length === 0) {
-      return { netIncome: 0, totalReturn: 0 };
+      return { netIncome: 0, totalVendas: 0 };
     }
 
-    const now = new Date();
-    const startOfCurrentMonth = startOfMonth(now);
-    const endOfCurrentMonth = endOfMonth(now);
+    // Usar o período selecionado do contexto
+    const startDate = new Date(dateRange.from);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(dateRange.to);
+    endDate.setHours(23, 59, 59, 999);
 
-    const currentMonthProducts = filteredProducts.filter((product) => {
+    const periodProducts = filteredProducts.filter((product) => {
       const dataProduto = parseDataProduto(product.data || '');
       if (!dataProduto) return false;
-      return dataProduto >= startOfCurrentMonth && dataProduto <= endOfCurrentMonth;
+      return dataProduto >= startDate && dataProduto <= endDate;
     });
 
-    // Se não houver dados do mês atual, usa todos os dados disponíveis
-    let productsToUse = currentMonthProducts.length > 0 ? currentMonthProducts : filteredProducts;
+    // Se não houver dados no período, usa todos os dados disponíveis
+    let productsToUse = periodProducts.length > 0 ? periodProducts : filteredProducts;
 
     const netIncome = productsToUse.reduce((sum, p) => {
       const lucro = p.lucroReal || 0;
       return sum + lucro;
     }, 0);
     
-    const totalReturn = productsToUse.reduce((sum, p) => {
+    const totalVendas = productsToUse.reduce((sum, p) => {
       const venda = p.precoVenda || 0;
       return sum + venda;
     }, 0);
 
-    console.log('Estatísticas do mês atual:', {
+    console.log('Estatísticas do período selecionado:', {
+      periodo: { from: dateRange.from, to: dateRange.to },
+      marketplace: selectedMarketplace,
       produtosFiltrados: filteredProducts.length,
-      produtosMesAtual: currentMonthProducts.length,
+      produtosPeriodo: periodProducts.length,
       produtosUsados: productsToUse.length,
       netIncome,
-      totalReturn,
-      primeiroProduto: productsToUse[0] ? {
-        produto: productsToUse[0].produto,
-        precoVenda: productsToUse[0].precoVenda,
-        lucroReal: productsToUse[0].lucroReal,
-        totalVenda: productsToUse[0].totalVenda,
-        totalCusto: productsToUse[0].totalCusto
-      } : null
+      totalVendas,
     });
 
-    return { netIncome, totalReturn };
-  }, [filteredProducts]);
+    return { netIncome, totalVendas };
+  }, [filteredProducts, dateRange, selectedMarketplace]);
 
-  // Calcular estatísticas do mês anterior
-  const previousMonthStats = useMemo(() => {
-    const now = new Date();
-    const startOfPreviousMonth = startOfMonth(subMonths(now, 1));
-    const endOfPreviousMonth = endOfMonth(subMonths(now, 1));
+  // Calcular estatísticas do período anterior (mesmo tamanho do período selecionado, mas anterior)
+  const previousPeriodStats = useMemo(() => {
+    const periodLength = dateRange.to.getTime() - dateRange.from.getTime();
+    const previousEnd = new Date(dateRange.from);
+    previousEnd.setTime(previousEnd.getTime() - 1);
+    const previousStart = new Date(previousEnd.getTime() - periodLength);
 
-    const previousMonthProducts = filteredProducts.filter((product) => {
+    previousStart.setHours(0, 0, 0, 0);
+    previousEnd.setHours(23, 59, 59, 999);
+
+    const previousPeriodProducts = filteredProducts.filter((product) => {
       const dataProduto = parseDataProduto(product.data || '');
       if (!dataProduto) return false;
-      return dataProduto >= startOfPreviousMonth && dataProduto <= endOfPreviousMonth;
+      return dataProduto >= previousStart && dataProduto <= previousEnd;
     });
 
-    const netIncome = previousMonthProducts.reduce((sum, p) => sum + (p.lucroReal || 0), 0);
-    const totalReturn = previousMonthProducts.reduce((sum, p) => sum + (p.precoVenda || 0), 0);
+    const netIncome = previousPeriodProducts.reduce((sum, p) => sum + (p.lucroReal || 0), 0);
+    const totalVendas = previousPeriodProducts.reduce((sum, p) => sum + (p.precoVenda || 0), 0);
 
-    return { netIncome, totalReturn };
-  }, [filteredProducts]);
+    return { netIncome, totalVendas };
+  }, [filteredProducts, dateRange]);
 
   // Calcular mudança percentual
   const netIncomeChange = useMemo(() => {
-    if (previousMonthStats.netIncome === 0) {
-      // Se não houver dados do mês anterior, retorna 0 (sem mudança)
+    if (previousPeriodStats.netIncome === 0) {
+      // Se não houver dados do período anterior, retorna 0 (sem mudança)
       return 0;
     }
-    const change = ((currentMonthStats.netIncome - previousMonthStats.netIncome) / Math.abs(previousMonthStats.netIncome)) * 100;
+    const change = ((currentPeriodStats.netIncome - previousPeriodStats.netIncome) / Math.abs(previousPeriodStats.netIncome)) * 100;
     console.log('Mudança Net Income:', {
-      atual: currentMonthStats.netIncome,
-      anterior: previousMonthStats.netIncome,
+      atual: currentPeriodStats.netIncome,
+      anterior: previousPeriodStats.netIncome,
       mudanca: change
     });
     return change;
-  }, [currentMonthStats.netIncome, previousMonthStats.netIncome]);
+  }, [currentPeriodStats.netIncome, previousPeriodStats.netIncome]);
 
-  const totalReturnChange = useMemo(() => {
-    if (previousMonthStats.totalReturn === 0) {
-      // Se não houver dados do mês anterior, retorna 0 (sem mudança)
+  const totalVendasChange = useMemo(() => {
+    if (previousPeriodStats.totalVendas === 0) {
+      // Se não houver dados do período anterior, retorna 0 (sem mudança)
       return 0;
     }
-    const change = ((currentMonthStats.totalReturn - previousMonthStats.totalReturn) / Math.abs(previousMonthStats.totalReturn)) * 100;
-    console.log('Mudança Total Return:', {
-      atual: currentMonthStats.totalReturn,
-      anterior: previousMonthStats.totalReturn,
+    const change = ((currentPeriodStats.totalVendas - previousPeriodStats.totalVendas) / Math.abs(previousPeriodStats.totalVendas)) * 100;
+    console.log('Mudança Total Vendas:', {
+      atual: currentPeriodStats.totalVendas,
+      anterior: previousPeriodStats.totalVendas,
       mudanca: change
     });
     return change;
-  }, [currentMonthStats.totalReturn, previousMonthStats.totalReturn]);
+  }, [currentPeriodStats.totalVendas, previousPeriodStats.totalVendas]);
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -216,21 +217,21 @@ const Index = () => {
 
           {/* Main Grid */}
           <div className="grid grid-cols-12 gap-5">
-            {/* Left Column - Stats & Charts */}
-            <div className="col-span-8 space-y-5">
+            {/* Stats & Charts */}
+            <div className="col-span-12 space-y-5">
               {/* Top Row - Update & Stats */}
               <div className="grid grid-cols-3 gap-5">
                 <UpdateCard />
                 <StatCard 
                   title="Lucro Líquido" 
-                  value={currentMonthStats.netIncome} 
+                  value={currentPeriodStats.netIncome} 
                   change={Math.round(netIncomeChange)} 
                   isLoading={isLoading}
                 />
                 <StatCard 
-                  title="Retorno Total" 
-                  value={currentMonthStats.totalReturn} 
-                  change={Math.round(totalReturnChange)} 
+                  title="Total de Vendas" 
+                  value={currentPeriodStats.totalVendas} 
+                  change={Math.round(totalVendasChange)} 
                   isLoading={isLoading}
                 />
               </div>
@@ -243,12 +244,6 @@ const Index = () => {
                   <SalesReport />
                 </div>
               </div>
-            </div>
-
-            {/* Right Column - Performance & Promo */}
-            <div className="col-span-4 space-y-5">
-              <PerformanceDonut />
-              <PromoCard />
             </div>
           </div>
         </main>

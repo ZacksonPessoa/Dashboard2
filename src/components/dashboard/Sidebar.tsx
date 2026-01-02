@@ -1,13 +1,7 @@
 import { 
   LayoutGrid, 
   BarChart3, 
-  Users, 
-  Package, 
-  Mail, 
-  Receipt, 
-  Settings, 
-  Shield,
-  ChevronDown
+  Receipt
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -15,15 +9,7 @@ import { cn } from "@/lib/utils";
 const menuItems = [
   { icon: LayoutGrid, label: "Visão Geral", path: "/" },
   { icon: BarChart3, label: "Estatísticas", path: "/statistics" },
-  { icon: Users, label: "Clientes", path: "/customers" },
-  { icon: Package, label: "Produtos", path: "/products", hasSubmenu: true },
-  { icon: Mail, label: "Mensagens", path: "/messages", badge: 13 },
   { icon: Receipt, label: "Transações", path: "/transactions" },
-];
-
-const generalItems = [
-  { icon: Settings, label: "Configurações" },
-  { icon: Shield, label: "Segurança" },
 ];
 
 export function Sidebar() {
@@ -70,32 +56,9 @@ export function Sidebar() {
               >
                 <item.icon className="w-5 h-5" />
                 <span className="flex-1">{item.label}</span>
-                {item.badge && (
-                  <span className="bg-sidebar-primary text-sidebar-primary-foreground text-xs px-2 py-0.5 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
-                {item.hasSubmenu && <ChevronDown className="w-4 h-4" />}
               </Link>
             );
           })}
-        </nav>
-
-        {/* General Section */}
-        <p className="text-sidebar-muted text-xs font-medium uppercase tracking-wider px-2 mt-8 mb-3">
-          Geral
-        </p>
-        <nav className="space-y-1">
-          {generalItems.map((item) => (
-            <a
-              key={item.label}
-              href="#"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
-            >
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </a>
-          ))}
         </nav>
       </div>
 

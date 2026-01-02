@@ -1,10 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
 import { format, parse, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { cn } from "@/lib/utils";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
-import { loadSalesData, type ProductData } from "@/lib/dataLoader";
+import { loadSalesData } from "@/lib/dataLoader";
+import type { ProductData } from "@/lib/excelReader";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 
 // Função para obter ícone baseado no nome do produto
@@ -28,9 +30,14 @@ const getProductIcon = (productName: string): string => {
 };
 
 export function TransactionList() {
+  const navigate = useNavigate();
   const { selectedMarketplace } = useMarketplace();
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleCardClick = () => {
+    navigate("/transactions");
+  };
 
   useEffect(() => {
     loadData();
@@ -137,10 +144,18 @@ export function TransactionList() {
   }, [products, selectedMarketplace]);
 
   return (
-    <div className="bg-card rounded-2xl p-5 border border-border animate-fade-in">
+    <div 
+      onClick={handleCardClick}
+      className="bg-card rounded-2xl p-5 border border-border animate-fade-in cursor-pointer hover:border-primary/50 transition-all group"
+    >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-foreground">Transações</h3>
-        <button className="text-muted-foreground hover:text-foreground transition-colors">
+        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">Transações</h3>
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          className="text-muted-foreground hover:text-foreground transition-colors"
+        >
           <MoreHorizontal className="w-5 h-5" />
         </button>
       </div>
