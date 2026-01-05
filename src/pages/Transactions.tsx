@@ -8,7 +8,8 @@ import { Header } from "@/components/dashboard/Header";
 import { DateRangePicker } from "@/components/dashboard/DateRangePicker";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
 import { useDateRange } from "@/contexts/DateRangeContext";
-import { loadSalesData, type ProductData } from "@/lib/dataLoader";
+import { loadSalesData } from "@/lib/dataLoader";
+import type { ProductData } from "@/lib/excelReader";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -121,27 +122,27 @@ const Transactions = () => {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col ml-56">
+      <div className="flex-1 flex flex-col lg:ml-56">
         <Header />
         
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto">
           {/* Header com botão voltar e título */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Link
                 to="/"
                 className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
               >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Voltar</span>
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-sm sm:text-base">Voltar</span>
               </Link>
-              <h1 className="text-2xl font-bold text-foreground">Transações</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Transações</h1>
             </div>
             <DateRangePicker />
           </div>
 
           {/* Barra de busca */}
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -149,34 +150,34 @@ const Transactions = () => {
                 placeholder="Buscar por produto, pedido, comprador, CPF ou endereço..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-sm sm:text-base"
               />
             </div>
           </div>
 
           {/* Lista de transações */}
-          <div className="bg-card rounded-2xl border border-border">
+          <div className="bg-card rounded-xl sm:rounded-2xl border border-border">
             {isLoading ? (
-              <div className="p-8 text-center text-muted-foreground">
+              <div className="p-6 sm:p-8 text-center text-muted-foreground">
                 Carregando transações...
               </div>
             ) : filteredTransactions.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
+              <div className="p-6 sm:p-8 text-center text-muted-foreground">
                 Nenhuma transação encontrada para o período e marketplace selecionados.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[800px]">
                   <thead className="bg-secondary/50 border-b border-border">
                     <tr>
-                      <th className="text-left p-4 text-sm font-semibold text-foreground">Data da Venda</th>
-                      <th className="text-left p-4 text-sm font-semibold text-foreground">Produto</th>
-                      <th className="text-left p-4 text-sm font-semibold text-foreground">Quantidade</th>
-                      <th className="text-left p-4 text-sm font-semibold text-foreground">Preço</th>
-                      <th className="text-left p-4 text-sm font-semibold text-foreground">Comprador</th>
-                      <th className="text-left p-4 text-sm font-semibold text-foreground">CPF</th>
-                      <th className="text-left p-4 text-sm font-semibold text-foreground">Endereço</th>
-                      <th className="text-left p-4 text-sm font-semibold text-foreground">Pedido</th>
+                      <th className="text-left p-2 sm:p-3 md:p-4 text-xs sm:text-sm font-semibold text-foreground">Data</th>
+                      <th className="text-left p-2 sm:p-3 md:p-4 text-xs sm:text-sm font-semibold text-foreground">Produto</th>
+                      <th className="text-left p-2 sm:p-3 md:p-4 text-xs sm:text-sm font-semibold text-foreground hidden sm:table-cell">Qtd</th>
+                      <th className="text-left p-2 sm:p-3 md:p-4 text-xs sm:text-sm font-semibold text-foreground">Preço</th>
+                      <th className="text-left p-2 sm:p-3 md:p-4 text-xs sm:text-sm font-semibold text-foreground hidden md:table-cell">Comprador</th>
+                      <th className="text-left p-2 sm:p-3 md:p-4 text-xs sm:text-sm font-semibold text-foreground hidden lg:table-cell">CPF</th>
+                      <th className="text-left p-2 sm:p-3 md:p-4 text-xs sm:text-sm font-semibold text-foreground hidden lg:table-cell">Endereço</th>
+                      <th className="text-left p-2 sm:p-3 md:p-4 text-xs sm:text-sm font-semibold text-foreground hidden md:table-cell">Pedido</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -191,21 +192,23 @@ const Transactions = () => {
                           key={`${transaction.pedido}-${idx}`}
                           className="border-b border-border hover:bg-secondary/30 transition-colors"
                         >
-                          <td className="p-4 text-sm text-foreground">{dataFormatada}</td>
-                          <td className="p-4 text-sm text-foreground font-medium">
-                            {transaction.produto || transaction.sku || '-'}
+                          <td className="p-2 sm:p-3 md:p-4 text-xs sm:text-sm text-foreground">{dataFormatada}</td>
+                          <td className="p-2 sm:p-3 md:p-4 text-xs sm:text-sm text-foreground font-medium max-w-[150px] sm:max-w-none">
+                            <div className="truncate" title={transaction.produto || transaction.sku || '-'}>
+                              {transaction.produto || transaction.sku || '-'}
+                            </div>
                           </td>
-                          <td className="p-4 text-sm text-foreground">{transaction.quantidade || 1}</td>
-                          <td className="p-4 text-sm text-foreground font-semibold">
+                          <td className="p-2 sm:p-3 md:p-4 text-xs sm:text-sm text-foreground hidden sm:table-cell">{transaction.quantidade || 1}</td>
+                          <td className="p-2 sm:p-3 md:p-4 text-xs sm:text-sm text-foreground font-semibold">
                             {formatCurrency(transaction.precoVenda || 0)}
                           </td>
-                          <td className="p-4 text-sm text-foreground">
+                          <td className="p-2 sm:p-3 md:p-4 text-xs sm:text-sm text-foreground hidden md:table-cell">
                             {transaction.comprador || '-'}
                           </td>
-                          <td className="p-4 text-sm text-muted-foreground font-mono">
+                          <td className="p-2 sm:p-3 md:p-4 text-xs sm:text-sm text-muted-foreground font-mono hidden lg:table-cell">
                             {formatCPF(transaction.cpf || '')}
                           </td>
-                          <td className="p-4 text-sm text-foreground max-w-xs">
+                          <td className="p-2 sm:p-3 md:p-4 text-xs sm:text-sm text-foreground max-w-xs hidden lg:table-cell">
                             <div className="truncate" title={transaction.endereco || ''}>
                               {transaction.endereco || '-'}
                             </div>
@@ -216,7 +219,7 @@ const Transactions = () => {
                               </div>
                             )}
                           </td>
-                          <td className="p-4 text-sm text-muted-foreground font-mono">
+                          <td className="p-2 sm:p-3 md:p-4 text-xs sm:text-sm text-muted-foreground font-mono hidden md:table-cell">
                             {transaction.pedido || '-'}
                           </td>
                         </tr>

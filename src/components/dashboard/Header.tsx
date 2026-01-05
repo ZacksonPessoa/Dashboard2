@@ -44,10 +44,10 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-border bg-card backdrop-blur-sm">
-      <div className="flex items-center gap-2">
+    <header className="sticky top-0 z-30 flex items-center justify-between px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-border bg-card backdrop-blur-sm">
+      <div className="flex items-center gap-2 min-w-0">
         <Select value={selectedMarketplace} onValueChange={handleMarketplaceChange}>
-          <SelectTrigger className="w-[180px] border-none bg-transparent text-xl font-semibold text-foreground hover:bg-accent">
+          <SelectTrigger className="w-[140px] sm:w-[160px] md:w-[180px] border-none bg-transparent text-base sm:text-lg md:text-xl font-semibold text-foreground hover:bg-accent">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -60,21 +60,21 @@ export function Header() {
         </Select>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Search */}
-        <div className="relative">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+        {/* Search - Hidden on mobile */}
+        <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar qualquer coisa no Formula da terra..."
-            className="w-64 pl-10 bg-background border-border"
+            placeholder="Buscar..."
+            className="w-48 lg:w-64 pl-10 bg-background border-border"
           />
         </div>
 
-        {/* Calendar */}
+        {/* Calendar - Icon only on mobile */}
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-              <CalendarIcon className="w-5 h-5" />
+              <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
@@ -86,14 +86,17 @@ export function Header() {
             />
           </PopoverContent>
         </Popover>
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+        
+        {/* Users - Hidden on mobile */}
+        <Button variant="ghost" size="icon" className="hidden sm:flex text-muted-foreground hover:text-foreground">
           <Users className="w-5 h-5" />
         </Button>
 
-        {/* Add Product Button */}
-        <Button className="bg-foreground text-background hover:bg-foreground/90 gap-2">
-          Adicionar novo produto
-          <Plus className="w-4 h-4" />
+        {/* Add Product Button - Text hidden on mobile */}
+        <Button className="bg-foreground text-background hover:bg-foreground/90 gap-2 text-xs sm:text-sm">
+          <span className="hidden sm:inline">Adicionar novo produto</span>
+          <span className="sm:hidden">Adicionar</span>
+          <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
         </Button>
       </div>
     </header>

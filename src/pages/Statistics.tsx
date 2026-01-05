@@ -1,6 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale/pt-BR";
 import { Calculator, Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
@@ -31,19 +29,9 @@ import { useMarketplace } from "@/contexts/MarketplaceContext";
 import { cn } from "@/lib/utils";
 
 const Statistics = () => {
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { selectedMarketplace } = useMarketplace();
-  const userName = "Zackson Pessoa"; // TODO: Buscar do BD quando implementado
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     loadData();
@@ -140,35 +128,28 @@ const Statistics = () => {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col ml-56">
+      <div className="flex-1 flex flex-col lg:ml-56">
         <Header />
         
-        <main className="flex-1 p-6 overflow-auto">
-          {/* User Info */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground">{userName}</h2>
-              <p className="text-muted-foreground text-sm">
-                {format(currentDateTime, "EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm:ss", { locale: ptBR })}
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <ProfitSimulator 
-                trigger={
-                  <Button>
-                    <Calculator className="w-4 h-4 mr-2" />
-                    Simulador de Lucro
-                  </Button>
-                }
-              />
-              <DateRangePicker />
-            </div>
+        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto">
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <ProfitSimulator 
+              trigger={
+                <Button className="w-full sm:w-auto">
+                  <Calculator className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Simulador de Lucro</span>
+                  <span className="sm:hidden">Simulador</span>
+                </Button>
+              }
+            />
+            <DateRangePicker />
           </div>
 
           {/* Statistics Title */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Estatísticas</h1>
-            <p className="text-muted-foreground">Análise detalhada de vendas e performance baseada nos dados de Novembro 2024</p>
+          <div className="mb-4 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Estatísticas</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Análise detalhada de vendas e performance baseada nos dados de Novembro 2024</p>
           </div>
 
           {/* Loading State */}
@@ -181,7 +162,7 @@ const Statistics = () => {
 
           {/* Stats Cards */}
           {!isLoading && stats && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 mb-4 sm:mb-6">
               <StatCard 
                 title="Receita Total" 
                 value={(stats.receitaTotal / 1000).toFixed(0) + "k"} 
@@ -212,7 +193,7 @@ const Statistics = () => {
               {filteredProducts.length > 0 && (
                 <div className="mb-6">
                   <Tabs defaultValue="product" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-4 h-12 bg-muted/50 border border-border rounded-lg p-1">
+                    <TabsList className="grid w-full grid-cols-2 mb-4 h-10 sm:h-12 bg-muted/50 border border-border rounded-lg p-1">
                       <TabsTrigger 
                         value="product"
                         className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all"
@@ -238,78 +219,84 @@ const Statistics = () => {
 
               {/* Gráficos de Top Produtos */}
               {chartData.topProducts.length > 0 && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-5 mb-4 sm:mb-6">
                   <Card className="border-border">
                     <CardHeader>
-                      <CardTitle>Top 10 Produtos por Vendas</CardTitle>
+                      <CardTitle className="text-base sm:text-lg">Top 10 Produtos por Vendas</CardTitle>
                     </CardHeader>
                     <CardContent className="h-full">
-                      <ResponsiveContainer width="100%" height={500}>
-                        <BarChart data={chartData.topProducts}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis 
-                            dataKey="name" 
-                            stroke="hsl(var(--muted-foreground))"
-                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                            angle={-45}
-                            textAnchor="end"
-                            height={100}
-                          />
-                          <YAxis 
-                            stroke="hsl(var(--muted-foreground))"
-                            tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                          />
-                          <Tooltip 
-                            contentStyle={{ 
-                              backgroundColor: 'hsl(var(--card))', 
-                              border: '1px solid hsl(var(--border))',
-                              borderRadius: '8px'
-                            }}
-                          />
-                          <Bar dataKey="vendas" fill="hsl(var(--chart-green-dark))" name="Vendas (R$)" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      <div className="h-[250px] sm:h-[350px] md:h-[450px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={chartData.topProducts}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis 
+                              dataKey="name" 
+                              stroke="hsl(var(--muted-foreground))"
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                              angle={-45}
+                              textAnchor="end"
+                              height={80}
+                            />
+                            <YAxis 
+                              stroke="hsl(var(--muted-foreground))"
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                            />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px',
+                                fontSize: '12px'
+                              }}
+                            />
+                            <Bar dataKey="vendas" fill="hsl(var(--chart-green-dark))" name="Vendas (R$)" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     </CardContent>
                   </Card>
 
                   <Card className="border-border">
                     <CardHeader>
-                      <CardTitle>Lucro por Produto (Top 10)</CardTitle>
+                      <CardTitle className="text-base sm:text-lg">Lucro por Produto (Top 10)</CardTitle>
                     </CardHeader>
                     <CardContent className="h-full">
-                      <ResponsiveContainer width="100%" height={500}>
-                        <BarChart data={chartData.topProducts}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis 
-                            dataKey="name" 
-                            stroke="hsl(var(--muted-foreground))"
-                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                            angle={-45}
-                            textAnchor="end"
-                            height={100}
-                          />
-                          <YAxis 
-                            stroke="hsl(var(--muted-foreground))"
-                            tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                          />
-                          <Tooltip 
-                            contentStyle={{ 
-                              backgroundColor: 'hsl(var(--card))', 
-                              border: '1px solid hsl(var(--border))',
-                              borderRadius: '8px'
-                            }}
-                          />
-                          <Bar 
-                            dataKey="lucro" 
-                            name="Lucro (R$)" 
-                            radius={[4, 4, 0, 0]}
-                          >
-                            {chartData.topProducts.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.lucro >= 0 ? "#10b981" : "#ef4444"} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
+                      <div className="h-[250px] sm:h-[350px] md:h-[450px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={chartData.topProducts}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis 
+                              dataKey="name" 
+                              stroke="hsl(var(--muted-foreground))"
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                              angle={-45}
+                              textAnchor="end"
+                              height={80}
+                            />
+                            <YAxis 
+                              stroke="hsl(var(--muted-foreground))"
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                            />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px',
+                                fontSize: '12px'
+                              }}
+                            />
+                            <Bar 
+                              dataKey="lucro" 
+                              name="Lucro (R$)" 
+                              radius={[4, 4, 0, 0]}
+                            >
+                              {chartData.topProducts.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.lucro >= 0 ? "#10b981" : "#ef4444"} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>

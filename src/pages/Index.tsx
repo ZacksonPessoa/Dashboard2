@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { format, parse, startOfMonth, endOfMonth, subMonths } from "date-fns";
-import { ptBR } from "date-fns/locale/pt-BR";
+import { parse, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
 import { UpdateCard } from "@/components/dashboard/UpdateCard";
@@ -15,20 +14,10 @@ import { loadSalesData, type ProductData } from "@/lib/dataLoader";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 
 const Index = () => {
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
-  const userName = "Zackson Pessoa"; // TODO: Buscar do BD quando implementado
   const { selectedMarketplace } = useMarketplace();
   const { dateRange } = useDateRange();
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 1000); // Atualiza a cada segundo
-
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     loadData();
@@ -200,27 +189,21 @@ const Index = () => {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col ml-56">
+      <div className="flex-1 flex flex-col lg:ml-56">
         <Header />
         
-        <main className="flex-1 p-6 overflow-auto">
-          {/* User Info */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground">{userName}</h2>
-              <p className="text-muted-foreground text-sm">
-                {format(currentDateTime, "EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm:ss", { locale: ptBR })}
-              </p>
-            </div>
+        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto">
+          {/* Date Range Picker */}
+          <div className="flex justify-end mb-4 sm:mb-6">
             <DateRangePicker />
           </div>
 
           {/* Main Grid */}
-          <div className="grid grid-cols-12 gap-5">
+          <div className="grid grid-cols-12 gap-3 sm:gap-4 md:gap-5">
             {/* Stats & Charts */}
-            <div className="col-span-12 space-y-5">
+            <div className="col-span-12 space-y-3 sm:space-y-4 md:space-y-5">
               {/* Top Row - Update & Stats */}
-              <div className="grid grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
                 <UpdateCard />
                 <StatCard 
                   title="Lucro Líquido" 
@@ -237,9 +220,9 @@ const Index = () => {
               </div>
 
               {/* Middle Row - Transaction & Revenue */}
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
                 <TransactionList />
-                <div className="space-y-5">
+                <div className="space-y-3 sm:space-y-4 md:space-y-5">
                   <RevenueChart />
                   <SalesReport />
                 </div>

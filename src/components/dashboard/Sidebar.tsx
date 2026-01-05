@@ -1,10 +1,15 @@
+import { useState } from "react";
 import { 
   LayoutGrid, 
   BarChart3, 
-  Receipt
+  Receipt,
+  Menu
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 const menuItems = [
   { icon: LayoutGrid, label: "Visão Geral", path: "/" },
@@ -12,26 +17,49 @@ const menuItems = [
   { icon: Receipt, label: "Transações", path: "/transactions" },
 ];
 
-export function Sidebar() {
+const SidebarContent = () => {
   const location = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-56 bg-sidebar flex flex-col p-4 overflow-y-auto z-40">
+    <>
       {/* Logo */}
-      <div className="flex items-center gap-2 px-2 mb-8">
+      <div className="px-2 mb-6">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 flex items-center justify-center">
-            <svg viewBox="0 0 24 24" className="w-6 h-6 text-sidebar-primary">
-              <path
-                fill="currentColor"
-                d="M12 2L12 7M12 17L12 22M2 12H7M17 12H22M4.93 4.93L8.46 8.46M15.54 15.54L19.07 19.07M4.93 19.07L8.46 15.54M15.54 8.46L19.07 4.93"
-                stroke="currentColor"
+          {/* Logo Icon - Círculo com folhas */}
+          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+            <svg viewBox="0 0 60 60" className="w-full h-full">
+              {/* Círculo externo */}
+              <circle
+                cx="30"
+                cy="30"
+                r="28"
+                fill="none"
+                stroke="hsl(var(--sidebar-primary))"
                 strokeWidth="2"
-                strokeLinecap="round"
+              />
+              {/* Folha maior (atrás) */}
+              <path
+                d="M 30 15 Q 20 20 18 30 Q 20 40 30 45 Q 40 40 42 30 Q 40 20 30 15 Z"
+                fill="hsl(var(--sidebar-primary))"
+                opacity="0.9"
+              />
+              {/* Folha menor (frente) */}
+              <path
+                d="M 30 20 Q 24 24 23 30 Q 24 36 30 40 Q 36 36 37 30 Q 36 24 30 20 Z"
+                fill="hsl(var(--sidebar-primary))"
               />
             </svg>
           </div>
-          <span className="text-sidebar-foreground font-semibold text-lg">Formula da terra</span>
+          {/* Texto do logo */}
+          <div className="flex flex-col">
+            <span className="text-sidebar-foreground font-bold text-xs leading-tight">
+              Fórmula da Terra
+            </span>
+            <span className="text-sidebar-muted text-[9px] leading-tight mt-0.5">
+              Farmácia de manipulação e<br />
+              bem estar, desde 2004.
+            </span>
+          </div>
         </Link>
       </div>
 
@@ -76,6 +104,38 @@ export function Sidebar() {
           </p>
         </div>
       </div>
+    </>
+  );
+};
+
+export function Sidebar() {
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="fixed top-4 left-4 z-50 lg:hidden"
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-56 p-0 bg-sidebar">
+          <div className="flex flex-col h-full p-4">
+            <SidebarContent />
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <aside className="fixed left-0 top-0 h-screen w-56 bg-sidebar flex flex-col p-4 overflow-y-auto z-40">
+      <SidebarContent />
     </aside>
   );
 }

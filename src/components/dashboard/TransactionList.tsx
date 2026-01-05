@@ -146,21 +146,21 @@ export function TransactionList() {
   return (
     <div 
       onClick={handleCardClick}
-      className="bg-card rounded-2xl p-5 border border-border animate-fade-in cursor-pointer hover:border-primary/50 transition-all group"
+      className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-border animate-fade-in cursor-pointer hover:border-primary/50 transition-all group"
     >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">Transações</h3>
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h3 className="font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">Transações</h3>
         <button 
           onClick={(e) => {
             e.stopPropagation();
           }}
           className="text-muted-foreground hover:text-foreground transition-colors"
         >
-          <MoreHorizontal className="w-5 h-5" />
+          <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
 
-      <div className="space-y-3 max-h-[380px] overflow-y-auto pr-2">
+      <div className="space-y-2 sm:space-y-3 max-h-[300px] sm:max-h-[350px] md:max-h-[380px] overflow-y-auto pr-2">
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">
             Carregando transações...
@@ -173,23 +173,23 @@ export function TransactionList() {
           transactionsToday.map((tx, idx) => (
             <div 
               key={`${tx.id}-${idx}`}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors"
+              className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors"
             >
-              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-lg">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-secondary flex items-center justify-center text-base sm:text-lg flex-shrink-0">
                 {tx.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm text-foreground truncate">{tx.name}</p>
-                <p className="text-xs text-muted-foreground">{tx.date}</p>
+                <p className="font-medium text-xs sm:text-sm text-foreground truncate">{tx.name}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{tx.date}</p>
               </div>
-              <div className="text-right">
+              <div className="text-right flex-shrink-0">
                 <p className={cn(
-                  "text-sm font-medium",
+                  "text-xs sm:text-sm font-medium",
                   tx.status === "Concluído" ? "text-success" : "text-warning"
                 )}>
                   {tx.status}
                 </p>
-                <p className="text-xs text-muted-foreground">{tx.id}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">{tx.id}</p>
               </div>
             </div>
           ))

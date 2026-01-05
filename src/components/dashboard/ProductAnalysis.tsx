@@ -92,23 +92,23 @@ export function ProductAnalysis({ products }: ProductAnalysisProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Estatísticas */}
-        <div className="grid grid-cols-4 gap-4">
-          <div className="p-3 rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground">Total</p>
-            <p className="text-2xl font-bold">{stats.total}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+          <div className="p-2 sm:p-3 rounded-lg bg-muted/50">
+            <p className="text-xs sm:text-sm text-muted-foreground">Total</p>
+            <p className="text-lg sm:text-2xl font-bold">{stats.total}</p>
           </div>
-          <div className="p-3 rounded-lg bg-success/10">
-            <p className="text-sm text-muted-foreground">Com Lucro</p>
-            <p className="text-2xl font-bold text-success">{stats.comLucro}</p>
+          <div className="p-2 sm:p-3 rounded-lg bg-success/10">
+            <p className="text-xs sm:text-sm text-muted-foreground">Com Lucro</p>
+            <p className="text-lg sm:text-2xl font-bold text-success">{stats.comLucro}</p>
           </div>
-          <div className="p-3 rounded-lg bg-destructive/10">
-            <p className="text-sm text-sm text-muted-foreground">Com Prejuízo</p>
-            <p className="text-2xl font-bold text-destructive">{stats.comPrejuizo}</p>
+          <div className="p-2 sm:p-3 rounded-lg bg-destructive/10">
+            <p className="text-xs sm:text-sm text-muted-foreground">Com Prejuízo</p>
+            <p className="text-lg sm:text-2xl font-bold text-destructive">{stats.comPrejuizo}</p>
           </div>
-          <div className="p-3 rounded-lg bg-primary/10">
-            <p className="text-sm text-muted-foreground">Lucro Total</p>
+          <div className="p-2 sm:p-3 rounded-lg bg-primary/10">
+            <p className="text-xs sm:text-sm text-muted-foreground">Lucro Total</p>
             <p className={cn(
-              "text-2xl font-bold",
+              "text-lg sm:text-2xl font-bold",
               stats.lucroTotal >= 0 ? "text-success" : "text-destructive"
             )}>
               R$ {stats.lucroTotal.toFixed(2)}
@@ -117,21 +117,21 @@ export function ProductAnalysis({ products }: ProductAnalysisProps) {
         </div>
 
         {/* Filtros */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar produto, SKU ou pedido..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 text-sm"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setFilterBy("all")}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors",
                 filterBy === "all"
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted hover:bg-muted/80"
@@ -142,7 +142,7 @@ export function ProductAnalysis({ products }: ProductAnalysisProps) {
             <button
               onClick={() => setFilterBy("profit")}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors",
                 filterBy === "profit"
                   ? "bg-success text-success-foreground"
                   : "bg-muted hover:bg-muted/80"
@@ -153,7 +153,7 @@ export function ProductAnalysis({ products }: ProductAnalysisProps) {
             <button
               onClick={() => setFilterBy("loss")}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors",
                 filterBy === "loss"
                   ? "bg-destructive text-destructive-foreground"
                   : "bg-muted hover:bg-muted/80"
@@ -166,20 +166,21 @@ export function ProductAnalysis({ products }: ProductAnalysisProps) {
 
         {/* Tabela */}
         <div className="border rounded-lg overflow-hidden">
-          <div className="max-h-[600px] overflow-auto relative">
-            <table className="w-full caption-bottom text-sm">
-              <thead className="sticky top-0 z-10 bg-background [&_tr]:border-b">
-                <tr className="border-b transition-colors">
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground bg-background">Produto</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground bg-background">SKU</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground bg-background">Pedido</th>
-                  <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground bg-background">Preço Venda</th>
-                  <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground bg-background">Total Custos</th>
-                  <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground bg-background">Lucro Real</th>
-                  <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground bg-background">Margem</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground bg-background">Problema</th>
-                </tr>
-              </thead>
+          <div className="max-h-[400px] sm:max-h-[500px] md:max-h-[600px] overflow-auto relative">
+            <div className="overflow-x-auto">
+              <table className="w-full caption-bottom text-sm min-w-[800px]">
+                <thead className="sticky top-0 z-10 bg-background [&_tr]:border-b">
+                  <tr className="border-b transition-colors">
+                    <th className="h-10 sm:h-12 px-2 sm:px-4 text-left align-middle font-medium text-xs sm:text-sm text-muted-foreground bg-background">Produto</th>
+                    <th className="h-10 sm:h-12 px-2 sm:px-4 text-left align-middle font-medium text-xs sm:text-sm text-muted-foreground bg-background hidden md:table-cell">SKU</th>
+                    <th className="h-10 sm:h-12 px-2 sm:px-4 text-left align-middle font-medium text-xs sm:text-sm text-muted-foreground bg-background hidden lg:table-cell">Pedido</th>
+                    <th className="h-10 sm:h-12 px-2 sm:px-4 text-right align-middle font-medium text-xs sm:text-sm text-muted-foreground bg-background">Preço Venda</th>
+                    <th className="h-10 sm:h-12 px-2 sm:px-4 text-right align-middle font-medium text-xs sm:text-sm text-muted-foreground bg-background hidden md:table-cell">Total Custos</th>
+                    <th className="h-10 sm:h-12 px-2 sm:px-4 text-right align-middle font-medium text-xs sm:text-sm text-muted-foreground bg-background">Lucro Real</th>
+                    <th className="h-10 sm:h-12 px-2 sm:px-4 text-right align-middle font-medium text-xs sm:text-sm text-muted-foreground bg-background hidden sm:table-cell">Margem</th>
+                    <th className="h-10 sm:h-12 px-2 sm:px-4 text-left align-middle font-medium text-xs sm:text-sm text-muted-foreground bg-background hidden lg:table-cell">Problema</th>
+                  </tr>
+                </thead>
               <tbody className="[&_tr:last-child]:border-0">
                 {filteredProducts.length === 0 ? (
                   <tr className="border-b transition-colors">
@@ -203,30 +204,30 @@ export function ProductAnalysis({ products }: ProductAnalysisProps) {
                           className="border-b transition-colors hover:bg-muted/50 cursor-pointer"
                           onClick={() => toggleProduct(index)}
                         >
-                          <td className="p-4 align-middle font-medium">
-                            <div className="flex items-center gap-2">
+                          <td className="p-2 sm:p-3 md:p-4 align-middle font-medium text-xs sm:text-sm">
+                            <div className="flex items-center gap-1 sm:gap-2">
                               {isExpanded ? (
-                                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                                <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
                               ) : (
-                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
                               )}
-                              {product.produto || product.sku || "N/A"}
+                              <span className="truncate">{product.produto || product.sku || "N/A"}</span>
                             </div>
                           </td>
-                          <td className="p-4 align-middle text-muted-foreground">
+                          <td className="p-2 sm:p-3 md:p-4 align-middle text-xs sm:text-sm text-muted-foreground hidden md:table-cell">
                             {product.sku || "-"}
                           </td>
-                          <td className="p-4 align-middle text-muted-foreground">
+                          <td className="p-2 sm:p-3 md:p-4 align-middle text-xs sm:text-sm text-muted-foreground hidden lg:table-cell">
                             {product.pedido || "-"}
                           </td>
-                          <td className="p-4 align-middle text-right">
+                          <td className="p-2 sm:p-3 md:p-4 align-middle text-right text-xs sm:text-sm">
                             R$ {(product.precoVenda || 0).toFixed(2)}
                           </td>
-                          <td className="p-4 align-middle text-right">
+                          <td className="p-2 sm:p-3 md:p-4 align-middle text-right text-xs sm:text-sm hidden md:table-cell">
                             R$ {(product.totalCusto || 0).toFixed(2)}
                           </td>
                           <td className={cn(
-                            "p-4 align-middle text-right font-semibold",
+                            "p-2 sm:p-3 md:p-4 align-middle text-right text-xs sm:text-sm font-semibold",
                             temPrejuizo ? "text-destructive" : "text-success"
                           )}>
                             <div className="flex items-center justify-end gap-1">
@@ -238,10 +239,11 @@ export function ProductAnalysis({ products }: ProductAnalysisProps) {
                               R$ {lucro.toFixed(2)}
                             </div>
                           </td>
-                          <td className="p-4 align-middle text-right">
+                          <td className="p-2 sm:p-3 md:p-4 align-middle text-right hidden sm:table-cell">
                             <Badge
                               variant={temPrejuizo ? "destructive" : "default"}
                               className={cn(
+                                "text-xs",
                                 !temPrejuizo && margem > 20 ? "bg-success/10 text-success" : "",
                                 temPrejuizo ? "bg-destructive/10 text-destructive" : ""
                               )}
@@ -249,26 +251,26 @@ export function ProductAnalysis({ products }: ProductAnalysisProps) {
                               {margem.toFixed(2)}%
                             </Badge>
                           </td>
-                          <td className="p-4 align-middle">
+                          <td className="p-2 sm:p-3 md:p-4 align-middle hidden lg:table-cell">
                             {temPrejuizo ? (
-                              <div className="flex items-center gap-2 text-xs text-destructive">
-                                <AlertTriangle className="h-3 w-3" />
-                                <span>{problema}</span>
+                              <div className="flex items-center gap-1 sm:gap-2 text-xs text-destructive">
+                                <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">{problema}</span>
                               </div>
                             ) : (
-                              <span className="text-sm text-muted-foreground">-</span>
+                              <span className="text-xs sm:text-sm text-muted-foreground">-</span>
                             )}
                           </td>
                         </tr>
                         {isExpanded && (
                           <tr className="bg-muted/30">
-                            <td colSpan={8} className="p-4">
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2 text-sm font-medium">
-                                  <AlertTriangle className="w-4 h-4 text-warning" />
-                                  <span>Análise de Lucro - {product.produto || product.sku || "N/A"} - Pedido #{product.pedido || "N/A"}</span>
+                            <td colSpan={8} className="p-3 sm:p-4">
+                              <div className="space-y-2 sm:space-y-3">
+                                <div className="flex items-center gap-2 text-xs sm:text-sm font-medium">
+                                  <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 text-warning flex-shrink-0" />
+                                  <span className="truncate">Análise de Lucro - {product.produto || product.sku || "N/A"} - Pedido #{product.pedido || "N/A"}</span>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4 p-4 bg-background rounded-lg border">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 p-3 sm:p-4 bg-background rounded-lg border">
                                   <div className="space-y-2">
                                     <p className="text-xs text-muted-foreground">Preço de Venda</p>
                                     <p className="text-lg font-semibold">R$ {(product.precoVenda || 0).toFixed(2)}</p>
@@ -316,6 +318,7 @@ export function ProductAnalysis({ products }: ProductAnalysisProps) {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </CardContent>
