@@ -1,6 +1,7 @@
 const express = require("express");
 
 // Imports ajustados para apontar para ml-automation/src a partir da raiz
+// Usando caminhos relativos simples que funcionam no Vercel
 const { getAuthUrl, exchangeCodeForToken, getMe } = require("../ml-automation/src/mlAuth");
 const { saveTokenKV } = require("../ml-automation/src/tokenStoreKV");
 const { getValidAccessToken } = require("../ml-automation/src/mlTokenManager");
