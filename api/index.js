@@ -1,15 +1,10 @@
 const express = require("express");
-const path = require("path");
 
-// Resolve caminhos absolutos para garantir que funcionem no Vercel
-// __dirname aponta para /api quando executado no Vercel
-const mlAutomationSrcPath = path.resolve(__dirname, "..", "ml-automation", "src");
-
-// Imports usando caminhos absolutos resolvidos
-const { getAuthUrl, exchangeCodeForToken, getMe } = require(path.join(mlAutomationSrcPath, "mlAuth"));
-const { saveTokenKV } = require(path.join(mlAutomationSrcPath, "tokenStoreKV"));
-const { getValidAccessToken } = require(path.join(mlAutomationSrcPath, "mlTokenManager"));
-const { getQuestionById } = require(path.join(mlAutomationSrcPath, "mlQuestions"));
+// Imports dos módulos locais (copiados para api/lib/)
+const { getAuthUrl, exchangeCodeForToken, getMe } = require("./lib/mlAuth");
+const { saveTokenKV } = require("./lib/tokenStoreKV");
+const { getValidAccessToken } = require("./lib/mlTokenManager");
+const { getQuestionById } = require("./lib/mlQuestions");
 
 const app = express();
 
