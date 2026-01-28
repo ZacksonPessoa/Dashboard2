@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { parse, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { Link2, Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
 import { UpdateCard } from "@/components/dashboard/UpdateCard";
@@ -12,12 +13,37 @@ import { useMarketplace } from "@/contexts/MarketplaceContext";
 import { useDateRange } from "@/contexts/DateRangeContext";
 import { loadSalesData, type ProductData } from "@/lib/dataLoader";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
+import { fetchAuthUrl, getAuthRedirectUrl } from "@/lib/api";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const { selectedMarketplace } = useMarketplace();
   const { dateRange } = useDateRange();
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [connectingMl, setConnectingMl] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
+
+  const handleConnectMercadoLivre = async () => {
+    setConnectError(null);
+    setConnectingMl(true);
+    try {
+      const authUrl = await fetchAuthUrl();
+      window.location.href = authUrl;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro ao obter link de conexão.";
+      if (msg === "Failed to fetch" || msg.includes("fetch")) {
+        setConnectError(
+          "Não foi possível conectar ao backend. Verifique: (1) internet ativa, (2) URL do backend no .env (VITE_API_BASE_URL), (3) se o backend no Vercel está no ar."
+        );
+      } else {
+        setConnectError(msg);
+      }
+    } finally {
+      setConnectingMl(false);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -186,17 +212,75 @@ const Index = () => {
     return change;
   }, [currentPeriodStats.totalVendas, previousPeriodStats.totalVendas]);
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background min-w-0">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col lg:ml-56">
+      <div className="flex-1 flex flex-col min-w-0 md:ml-56 pl-14 md:pl-0">
         <Header />
         
-        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto">
+        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto min-w-0">
           {/* Date Range Picker */}
           <div className="flex justify-end mb-4 sm:mb-6">
             <DateRangePicker />
           </div>
+
+          {/* Aviso: conectar conta ML quando não há dados */}
+          {!isLoading && products.length === 0 && (
+            <Alert className="mb-4 sm:mb-6 border-primary/50 bg-primary/5">
+              <Link2 className="h-4 w-4" />
+              <AlertTitle>Conectar Mercado Livre</AlertTitle>
+              <AlertDescription className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <span>
+                  Para carregar vendas, transações e estatísticas do Mercado Livre, autorize o app uma vez com sua conta de vendedor.
+                </span>
+                <Button
+                  onClick={handleConnectMercadoLivre}
+                  disabled={connectingMl}
+                  className="w-full sm:w-auto shrink-0"
+                >
+                  {connectingMl ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Redirecionando...
+                    </>
+                  ) : (
+                    <>
+                      <Link2 className="mr-2 h-4 w-4" />
+                      Conectar Mercado Livre
+                    </>
+                  )}
+                </Button>
+              </AlertDescription>
+              {connectError && (
+                <p className="mt-2 text-sm text-destructive">{connectError}</p>
+              )}
+              <p className="mt-2 text-xs text-muted-foreground">
+                Se o botão falhar,{" "}
+                <a
+                  href={getAuthRedirectUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-primary hover:no-underline"
+                >
+                  abra este link em nova aba
+                </a>{" "}
+                para autorizar no Mercado Livre.
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Já autorizou? Clique em{" "}
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto p-0 text-primary underline"
+                  onClick={() => loadData()}
+                  disabled={isLoading}
+                >
+                  Recarregar dados
+                </Button>{" "}
+                ou atualize a página (F5).
+              </p>
+            </Alert>
+          )}
 
           {/* Main Grid */}
           <div className="grid grid-cols-12 gap-3 sm:gap-4 md:gap-5">

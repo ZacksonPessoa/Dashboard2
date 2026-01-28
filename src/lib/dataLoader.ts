@@ -1,6 +1,8 @@
 import type { ProductData } from './excelReader';
 import { fetchTransactions, fetchProducts } from './api';
 
+export type { ProductData } from "./excelReader";
+
 export interface ProductCost {
   titulo: string;
   custo: number;

@@ -1,12 +1,26 @@
 /**
  * Cliente da API lm-backend-vercel (Mercado Livre).
- * Base URL: VITE_API_BASE_URL (vazio = mesma origem, ex: /api)
+ * Em desenvolvimento: usa '' (proxy do Vite encaminha /api ao backend).
+ * Em produção: VITE_API_BASE_URL ou DEFAULT_API_BASE_URL.
  */
+const DEFAULT_API_BASE_URL = "https://api-mercado-livre-two.vercel.app";
 
-const getBaseUrl = (): string => {
-  const url = import.meta.env.VITE_API_BASE_URL;
-  if (url) return url.replace(/\/$/, "");
+/** URL base do backend (para chamadas fetch e link direto de auth). */
+export const getBaseUrl = (): string => {
+  // Em dev, usar mesma origem para o proxy do Vite encaminhar /api ao backend (evita CORS)
+  if (import.meta.env.DEV) {
+    const url = import.meta.env.VITE_API_BASE_URL;
+    if (url) return String(url).replace(/\/$/, "");
+    return "";
+  }
+  const url = import.meta.env.VITE_API_BASE_URL ?? DEFAULT_API_BASE_URL;
+  if (url) return String(url).replace(/\/$/, "");
   return "";
+};
+
+/** Link direto para autorizar no ML (redireciona pelo backend). Use se "Conectar" falhar. */
+export const getAuthRedirectUrl = (): string => {
+  return `${getBaseUrl()}/api/ml/auth?redirect=1`;
 };
 
 export interface ApiTransaction {
@@ -99,4 +113,38 @@ export async function fetchFinance(from?: Date, to?: Date): Promise<ApiFinanceRe
 /** Produtos lançados e vendas desses produtos */
 export async function fetchProducts(): Promise<ApiProductsResponse> {
   return apiGet<ApiProductsResponse>("/api/ml/products");
+}
+
+export interface ApiAuthResponse {
+  ok: boolean;
+  authUrl?: string;
+  state?: string;
+  error?: string;
+}
+
+/** URL para autorizar a conta Mercado Livre (OAuth). Use para redirecionar o usuário. */
+export async function fetchAuthUrl(): Promise<string> {
+  const base = getBaseUrl();
+  const url = `${base}/api/ml/auth`;
+  const res = await fetch(url);
+  const text = await res.text();
+
+  // Se a resposta for HTML (ex.: SPA do frontend), a API não foi alcançada
+  if (text.trim().toLowerCase().startsWith("<!")) {
+    throw new Error(
+      "A API do backend não foi alcançada (resposta em HTML). Defina VITE_API_BASE_URL no .env com a URL do backend no Vercel (ex.: https://api-mercado-livre-two.vercel.app)."
+    );
+  }
+
+  let data: ApiAuthResponse;
+  try {
+    data = JSON.parse(text) as ApiAuthResponse;
+  } catch {
+    throw new Error("Resposta inválida da API. Tente novamente ou verifique a URL do backend.");
+  }
+
+  if (!res.ok || !data.authUrl) {
+    throw new Error(data?.error || "Não foi possível obter a URL de conexão.");
+  }
+  return data.authUrl;
 }

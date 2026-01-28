@@ -119,13 +119,13 @@ const Transactions = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background min-w-0">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col lg:ml-56">
+      <div className="flex-1 flex flex-col min-w-0 md:ml-56 pl-14 md:pl-0">
         <Header />
         
-        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto">
+        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto min-w-0">
           {/* Header com botão voltar e título */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div className="flex items-center gap-2 sm:gap-4">

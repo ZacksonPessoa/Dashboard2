@@ -69,9 +69,9 @@ export function SalesReport() {
   }, [scaleMax]);
 
   return (
-    <div className="bg-card rounded-2xl p-5 border border-border animate-fade-in">
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="font-semibold text-foreground">Relatório de Vendas</h3>
+    <div className="bg-card rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-border animate-fade-in min-w-0">
+      <div className="flex items-center justify-between mb-4 sm:mb-5 gap-2">
+        <h3 className="font-semibold text-sm sm:text-base text-foreground truncate">Relatório de Vendas</h3>
         <button className="text-muted-foreground hover:text-foreground transition-colors">
           <MoreHorizontal className="w-5 h-5" />
         </button>

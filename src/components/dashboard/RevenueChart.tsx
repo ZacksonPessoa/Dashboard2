@@ -155,11 +155,11 @@ export function RevenueChart() {
   const isPositive = totalStats.change >= 0;
 
   return (
-    <div className="bg-card rounded-2xl p-5 border border-border animate-fade-in">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-4 mb-1">
-            <h3 className="font-semibold text-foreground">Receita</h3>
+    <div className="bg-card rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-border animate-fade-in min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-1">
+            <h3 className="font-semibold text-sm sm:text-base text-foreground">Receita</h3>
             <div className="flex items-center gap-3 text-xs">
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-sm bg-chart-green-dark" />
@@ -174,10 +174,10 @@ export function RevenueChart() {
         </div>
       </div>
 
-      <div className="mb-4">
-        <p className="text-3xl font-bold text-foreground">
-          <span className="text-lg align-top">R$</span>
-          {isLoading ? "Carregando..." : totalStats.totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+      <div className="mb-3 sm:mb-4 min-w-0">
+        <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">
+          <span className="text-base sm:text-lg align-top">R$</span>
+          {isLoading ? "Carregando..." : totalStats.totalIncome.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
         </p>
         <div className="flex items-center gap-1.5 text-sm">
           {isPositive ? (

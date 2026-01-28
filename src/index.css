@@ -94,9 +94,14 @@
     @apply border-border;
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    @apply bg-background text-foreground font-sans antialiased min-h-screen;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    overflow-x: hidden;
   }
 }
 

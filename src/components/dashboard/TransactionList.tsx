@@ -148,10 +148,10 @@ export function TransactionList() {
   return (
     <div 
       onClick={handleCardClick}
-      className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-border animate-fade-in cursor-pointer hover:border-primary/50 transition-all group"
+      className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-border animate-fade-in cursor-pointer hover:border-primary/50 transition-all group min-w-0"
     >
-      <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <h3 className="font-semibold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">Transações</h3>
+      <div className="flex items-center justify-between mb-2 sm:mb-4 gap-2">
+        <h3 className="font-semibold text-xs sm:text-base text-foreground group-hover:text-primary transition-colors truncate">Transações</h3>
         <button 
           onClick={(e) => {
             e.stopPropagation();
@@ -162,7 +162,7 @@ export function TransactionList() {
         </button>
       </div>
 
-      <div className="space-y-2 sm:space-y-3 max-h-[300px] sm:max-h-[350px] md:max-h-[380px] overflow-y-auto pr-2">
+      <div className="space-y-2 sm:space-y-3 max-h-[260px] sm:max-h-[350px] md:max-h-[380px] overflow-y-auto pr-1 sm:pr-2 -mr-1 sm:mr-0">
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">
             Carregando transações...

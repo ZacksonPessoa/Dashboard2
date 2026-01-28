@@ -130,20 +130,20 @@ export function UpdateCard() {
     : format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
 
   return (
-    <div className="bg-primary rounded-2xl p-5 text-primary-foreground animate-fade-in">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-              <span className="text-sm font-medium opacity-90">Atualização</span>
+    <div className="bg-primary rounded-xl sm:rounded-2xl p-4 sm:p-5 text-primary-foreground animate-fade-in min-w-0">
+      <div className="flex items-center gap-2 mb-2 sm:mb-3">
+        <div className="w-2 h-2 rounded-full bg-destructive animate-pulse shrink-0" />
+        <span className="text-xs sm:text-sm font-medium opacity-90">Atualização</span>
       </div>
       
-      <p className="text-xs opacity-70 mb-1">
-        {vendasDoDia.isToday ? 'Hoje' : dataFormatada}
+      <p className="text-[10px] sm:text-xs opacity-70 mb-0.5 sm:mb-1">
+        {vendasDoDia.isToday ? "Hoje" : dataFormatada}
       </p>
       
-      <p className="text-lg font-medium mb-1">
-        {vendasDoDia.isToday ? 'Vendas do dia' : 'Vendas do dia'}
+      <p className="text-sm sm:text-base font-medium mb-0.5 sm:mb-1">
+        Vendas do dia
       </p>
-      <p className="text-2xl font-bold text-accent mb-4">
+      <p className="text-xl sm:text-2xl font-bold text-accent mb-3 sm:mb-4 break-words">
         {isLoading ? (
           <span className="text-lg font-medium text-primary-foreground opacity-90">Carregando...</span>
         ) : error ? (
@@ -160,7 +160,7 @@ export function UpdateCard() {
       
       <Link 
         to="/statistics"
-        className="inline-flex items-center gap-1 text-sm font-medium hover:gap-2 transition-all"
+        className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium hover:gap-2 transition-all"
       >
         Ver Estatísticas
         <ChevronRight className="w-4 h-4" />

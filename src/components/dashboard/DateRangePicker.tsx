@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { DateRange } from "react-day-picker";
 import { useDateRange } from "@/contexts/DateRangeContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 export function DateRangePicker() {
   const { dateRange, setDateRange } = useDateRange();
   const [isOpen, setIsOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleSelect = (range: DateRange | undefined) => {
     if (range?.from && range?.to) {
@@ -58,14 +60,14 @@ export function DateRangePicker() {
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="end">
+      <PopoverContent className="w-auto p-0 max-w-[100vw] sm:max-w-none" align="end" sideOffset={4}>
         <Calendar
           initialFocus
           mode="range"
           defaultMonth={dateRange.from}
           selected={{ from: dateRange.from, to: dateRange.to }}
           onSelect={handleSelect}
-          numberOfMonths={2}
+          numberOfMonths={isMobile ? 1 : 2}
         />
       </PopoverContent>
     </Popover>

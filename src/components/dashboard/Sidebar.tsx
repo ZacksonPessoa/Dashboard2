@@ -119,13 +119,14 @@ export function Sidebar() {
           <Button
             variant="ghost"
             size="icon"
-            className="fixed top-4 left-4 z-50 lg:hidden"
+            className="fixed top-4 left-4 z-50 md:hidden"
+            aria-label="Abrir menu"
           >
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-56 p-0 bg-sidebar">
-          <div className="flex flex-col h-full p-4">
+        <SheetContent side="left" className="w-[min(85vw,20rem)] p-0 bg-sidebar">
+          <div className="flex flex-col h-full p-4 overflow-y-auto">
             <SidebarContent />
           </div>
         </SheetContent>

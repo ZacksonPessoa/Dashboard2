@@ -1,55 +1,73 @@
-# Redeploy no Vercel
+# Deploy no Vercel
 
-Para atualizar as modificações no Vercel, use uma das opções abaixo.
+**Importante:** toda vez que você atualizar o código (frontend ou backend), é preciso fazer um novo deploy no Vercel para as alterações entrarem no ar.
 
 ---
 
-## Opção 1: Push no Git (recomendado)
+## Melhor opção: deploy automático (Git)
 
-Se o projeto está ligado a um repositório no Vercel, cada **push** gera um deploy automático.
+Conecte o repositório ao Vercel para que **cada push** dispare um deploy automático. Assim você não precisa fazer deploy manual toda vez.
+
+### Como configurar (uma vez)
+
+1. Acesse [vercel.com](https://vercel.com) e faça login.
+2. **Import Project** (ou **Add New** → **Project**).
+3. Conecte o GitHub/GitLab/Bitbucket e escolha o repositório do projeto.
+4. Para o **frontend** (Dashboard2): root = pasta raiz do repo, build = `npm run build`, output = `dist`.
+5. Para o **backend** (lm-backend-vercel): se for outro projeto no Vercel, importe de novo com root = `lm-backend-vercel` (ou o repo só do backend).
+6. Defina as **Environment Variables** de cada projeto (ex.: no backend: `ML_CLIENT_ID`, `ML_CLIENT_SECRET`, `ML_REDIRECT_URI`, `KV_REST_API_*`, etc.).
+
+Depois disso, **sempre que der push**:
 
 ```bash
 cd c:\Users\User\Dashboard2
-
 git add .
-git status
-git commit -m "feat: API lm-backend-vercel, credenciais ML, .env.example alinhado ao Vercel"
+git commit -m "sua mensagem"
 git push origin main
 ```
 
-O Vercel fará o build e o deploy sozinho.
+o Vercel fará o build e o deploy sozinho.
 
 ---
 
-## Opção 2: Vercel CLI (produção)
+## Deploy manual (quando não usar Git ou para forçar redeploy)
 
-1. Instale o Vercel CLI (se ainda não tiver):
+### Opção A: Vercel CLI
+
+1. Instale e faça login (uma vez):
    ```bash
    npm i -g vercel
+   vercel login
    ```
 
-2. **Frontend (raiz do Dashboard2):**
+2. **Frontend** (a cada alteração no código do dashboard):
    ```bash
    cd c:\Users\User\Dashboard2
    npm run deploy
    ```
-   Ou diretamente: `vercel --prod`
+   ou: `vercel --prod`
 
-3. **Backend (lm-backend-vercel)** – se for um projeto separado no Vercel:
+3. **Backend** (a cada alteração no lm-backend-vercel):
    ```bash
    cd c:\Users\User\Dashboard2\lm-backend-vercel
    vercel --prod
    ```
 
-Na primeira vez, faça login com `vercel login` se pedir.
+### Opção B: Painel do Vercel
+
+1. [vercel.com](https://vercel.com) → seu projeto.
+2. **Deployments** → **⋯** no último deploy → **Redeploy**.
+
+Redeploy pelo painel usa o **último commit** já enviado. Para subir código novo, use primeiro **Git push** (se o repo estiver conectado) ou **Vercel CLI** a partir da pasta com as alterações.
 
 ---
 
-## Opção 3: Pelo painel do Vercel
+## Resumo
 
-1. Acesse [vercel.com](https://vercel.com) e entre na sua conta.
-2. Abra o projeto (Dashboard2 ou api-mercado-livre-two).
-3. Aba **Deployments** → no último deploy, clique nos **três pontinhos (⋯)**.
-4. Escolha **Redeploy** e confirme.
+| Situação | O que fazer |
+|----------|-------------|
+| Repo conectado ao Vercel | `git push` → deploy automático |
+| Código alterado, sem push | Rodar `vercel --prod` na pasta do projeto (front ou back) |
+| Dois projetos (front + back) | Fazer deploy dos dois quando cada um for alterado |
 
-Isso refaz o último deploy com o mesmo commit; para incluir alterações novas, use a **Opção 1** (push) ou a **Opção 2** (CLI a partir da pasta com as mudanças).
+**Lembrete:** toda atualização de código exige um novo deploy no Vercel para passar a valer em produção.
