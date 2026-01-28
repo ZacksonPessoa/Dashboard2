@@ -2,22 +2,24 @@ import { useEffect, useState, useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { parse } from "date-fns";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
+import { useDateRange } from "@/contexts/DateRangeContext";
 import { loadSalesData, type ProductData } from "@/lib/dataLoader";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 
 export function PerformanceDonut() {
   const { selectedMarketplace } = useMarketplace();
+  const { dateRange } = useDateRange();
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [dateRange.from, dateRange.to]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await loadSalesData();
+      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
       setProducts(data);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);

@@ -21,12 +21,12 @@ const Index = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [dateRange.from, dateRange.to]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await loadSalesData();
+      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
       console.log('=== DADOS CARREGADOS NO INDEX ===');
       console.log('Total de produtos:', data.length);
       if (data.length > 0) {

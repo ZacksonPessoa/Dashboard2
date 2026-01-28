@@ -26,22 +26,24 @@ import {
 import { loadSalesData, type ProductData } from "@/lib/dataLoader";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
+import { useDateRange } from "@/contexts/DateRangeContext";
 import { cn } from "@/lib/utils";
 
 const Statistics = () => {
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { selectedMarketplace } = useMarketplace();
+  const { dateRange } = useDateRange();
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [dateRange.from, dateRange.to]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
       console.log("Iniciando carregamento de dados...");
-      const data = await loadSalesData();
+      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
       console.log(`Dados carregados: ${data.length} produtos`);
       if (data.length > 0) {
         console.log("Primeiro produto:", data[0]);
@@ -310,7 +312,7 @@ const Statistics = () => {
               <CardContent className="py-12 text-center">
                 <Loader2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">
-                  Nenhum dado encontrado. Verifique se o arquivo NOVEMBRO_ML.xlsx está na pasta public.
+                  Nenhum dado encontrado. Verifique a conexão com a API (lm-backend-vercel) e o período selecionado.
                 </p>
               </CardContent>
             </Card>

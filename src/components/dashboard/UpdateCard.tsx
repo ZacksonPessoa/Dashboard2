@@ -3,25 +3,27 @@ import { ChevronRight } from "lucide-react";
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
+import { useDateRange } from "@/contexts/DateRangeContext";
 import { loadSalesData, type ProductData } from "@/lib/dataLoader";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 import { Link } from "react-router-dom";
 
 export function UpdateCard() {
   const { selectedMarketplace } = useMarketplace();
+  const { dateRange } = useDateRange();
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [dateRange.from, dateRange.to]);
 
   const loadData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await loadSalesData();
+      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
       setProducts(data);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);

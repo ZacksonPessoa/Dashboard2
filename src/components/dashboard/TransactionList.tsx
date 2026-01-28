@@ -5,6 +5,7 @@ import { format, parse, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { cn } from "@/lib/utils";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
+import { useDateRange } from "@/contexts/DateRangeContext";
 import { loadSalesData } from "@/lib/dataLoader";
 import type { ProductData } from "@/lib/excelReader";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
@@ -32,6 +33,7 @@ const getProductIcon = (productName: string): string => {
 export function TransactionList() {
   const navigate = useNavigate();
   const { selectedMarketplace } = useMarketplace();
+  const { dateRange } = useDateRange();
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,12 +43,12 @@ export function TransactionList() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [dateRange.from, dateRange.to]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await loadSalesData();
+      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
       setProducts(data);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);

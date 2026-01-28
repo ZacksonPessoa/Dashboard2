@@ -23,12 +23,12 @@ const Transactions = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [dateRange.from, dateRange.to]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await loadSalesData();
+      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
       setProducts(data);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);

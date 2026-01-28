@@ -1,13 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
 import { MoreHorizontal } from "lucide-react";
-import { useMarketplace } from "@/contexts/MarketplaceContext";
-import { loadSalesData, loadProductCosts, type ProductData } from "@/lib/dataLoader";
-import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
+import { loadProductsStats } from "@/lib/dataLoader";
 
 export function SalesReport() {
-  const { selectedMarketplace } = useMarketplace();
-  const [salesProducts, setSalesProducts] = useState<ProductData[]>([]);
-  const [launchedProducts, setLaunchedProducts] = useState<{ titulo: string }[]>([]);
+  const [stats, setStats] = useState<{ productsLaunched: number; salesOfLaunchedProducts: number }>({
+    productsLaunched: 0,
+    salesOfLaunchedProducts: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -17,12 +16,8 @@ export function SalesReport() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [salesData, costsData] = await Promise.all([
-        loadSalesData(),
-        loadProductCosts()
-      ]);
-      setSalesProducts(salesData);
-      setLaunchedProducts(costsData.map(p => ({ titulo: p.titulo })));
+      const data = await loadProductsStats();
+      setStats(data);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -30,52 +25,29 @@ export function SalesReport() {
     }
   };
 
-  // Filtrar vendas por marketplace
-  const filteredSales = useMemo(() => {
-    return filterProductsByMarketplace(salesProducts, selectedMarketplace);
-  }, [salesProducts, selectedMarketplace]);
-
-  // Calcular métricas
+  // Métricas da API (produtos lançados e vendas desses produtos)
   const reportData = useMemo(() => {
-    // Produtos lançados = quantidade de produtos únicos no CSV de custos
-    const produtosLancados = launchedProducts.length;
-
-    // Vendas de produtos lançados = vendas que correspondem aos produtos do CSV
-    // Compara títulos dos produtos (normalizado para comparação)
-    const normalizeTitle = (title: string): string => {
-      return title.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    };
-
-    const lancadosTitles = new Set(launchedProducts.map(p => normalizeTitle(p.titulo)));
-    
-    const vendasProdutosLancados = filteredSales.filter(sale => {
-      const saleTitle = normalizeTitle(sale.produto || sale.sku || '');
-      // Verifica se o título da venda corresponde a algum produto lançado
-      return Array.from(lancadosTitles).some(lancadoTitle => 
-        saleTitle.includes(lancadoTitle) || lancadoTitle.includes(saleTitle)
-      );
-    }).length;
-
-    // Calcular largura máxima para o gráfico
+    const produtosLancados = stats.productsLaunched;
+    const vendasProdutosLancados = stats.salesOfLaunchedProducts;
     const maxValue = Math.max(produtosLancados, vendasProdutosLancados, 1);
-    
+
     const data = [
       {
         label: "Produtos Lançados",
         value: produtosLancados,
         color: "bg-chart-green-light",
-        maxWidth: `${Math.min((produtosLancados / maxValue) * 100, 100)}%`
+        maxWidth: `${Math.min((produtosLancados / maxValue) * 100, 100)}%`,
       },
       {
         label: "Vendas de Produtos Lançados",
         value: vendasProdutosLancados,
         color: "bg-accent",
-        maxWidth: `${Math.min((vendasProdutosLancados / maxValue) * 100, 100)}%`
-      }
+        maxWidth: `${Math.min((vendasProdutosLancados / maxValue) * 100, 100)}%`,
+      },
     ];
 
     return { data, maxValue };
-  }, [launchedProducts, filteredSales]);
+  }, [stats]);
 
   // Calcular escala do eixo X
   const scaleMax = useMemo(() => {

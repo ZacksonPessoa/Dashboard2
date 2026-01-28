@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts
 import { format, parse, startOfMonth, endOfMonth, subMonths, eachMonthOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
+import { useDateRange } from "@/contexts/DateRangeContext";
 import { loadSalesData, type ProductData } from "@/lib/dataLoader";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 import { cn } from "@/lib/utils";
@@ -15,17 +16,18 @@ const monthNames = [
 
 export function RevenueChart() {
   const { selectedMarketplace } = useMarketplace();
+  const { dateRange } = useDateRange();
   const [products, setProducts] = useState<ProductData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [dateRange.from, dateRange.to]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await loadSalesData();
+      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
       setProducts(data);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
