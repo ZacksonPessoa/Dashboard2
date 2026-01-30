@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
-import { parse, startOfMonth, endOfMonth, subMonths } from "date-fns";
-import { Link2, Loader2 } from "lucide-react";
+import { useRef, useMemo } from "react";
+import { parse } from "date-fns";
+import { Upload } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
 import { UpdateCard } from "@/components/dashboard/UpdateCard";
@@ -11,78 +11,23 @@ import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { SalesReport } from "@/components/dashboard/SalesReport";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
 import { useDateRange } from "@/contexts/DateRangeContext";
-import { loadSalesData, type ProductData } from "@/lib/dataLoader";
+import { useSalesData } from "@/contexts/SalesDataContext";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
-import { fetchAuthUrl, getAuthRedirectUrl } from "@/lib/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const { selectedMarketplace } = useMarketplace();
   const { dateRange } = useDateRange();
-  const [products, setProducts] = useState<ProductData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [connectingMl, setConnectingMl] = useState(false);
-  const [connectError, setConnectError] = useState<string | null>(null);
+  const { salesData, isLoadingUpload, uploadError, uploadSalesFile } = useSalesData();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleConnectMercadoLivre = async () => {
-    setConnectError(null);
-    setConnectingMl(true);
-    try {
-      const authUrl = await fetchAuthUrl();
-      window.location.href = authUrl;
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erro ao obter link de conexão.";
-      if (msg === "Failed to fetch" || msg.includes("fetch")) {
-        setConnectError(
-          "Não foi possível conectar ao backend. Verifique: (1) internet ativa, (2) URL do backend no .env (VITE_API_BASE_URL), (3) se o backend no Vercel está no ar."
-        );
-      } else {
-        setConnectError(msg);
-      }
-    } finally {
-      setConnectingMl(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [dateRange.from, dateRange.to]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
-      console.log('=== DADOS CARREGADOS NO INDEX ===');
-      console.log('Total de produtos:', data.length);
-      if (data.length > 0) {
-        console.log('Primeiro produto completo:', data[0]);
-        const produtosComLucro = data.filter(p => (p.lucroReal || 0) > 0);
-        const produtosComPrejuizo = data.filter(p => (p.lucroReal || 0) < 0);
-        const produtosSemLucro = data.filter(p => (p.lucroReal || 0) === 0);
-        console.log('Produtos com lucro:', produtosComLucro.length);
-        console.log('Produtos com prejuízo:', produtosComPrejuizo.length);
-        console.log('Produtos sem lucro (zero):', produtosSemLucro.length);
-        
-        const totalLucro = data.reduce((sum, p) => sum + (p.lucroReal || 0), 0);
-        const totalVenda = data.reduce((sum, p) => sum + (p.precoVenda || 0), 0);
-        const totalCusto = data.reduce((sum, p) => sum + (p.totalCusto || 0), 0);
-        console.log('Total Lucro Real:', totalLucro);
-        console.log('Total Venda:', totalVenda);
-        console.log('Total Custo:', totalCusto);
-        
-        if (produtosComLucro.length > 0) {
-          console.log('Exemplo produto com lucro:', produtosComLucro[0]);
-        }
-        if (produtosSemLucro.length > 0) {
-          console.log('Exemplo produto sem lucro:', produtosSemLucro[0]);
-        }
-      }
-      setProducts(data);
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    } finally {
-      setIsLoading(false);
+  const handleUploadClick = () => fileInputRef.current?.click();
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadSalesFile(file);
+      e.target.value = "";
     }
   };
 
@@ -112,10 +57,10 @@ const Index = () => {
     }
   };
 
-  // Filtrar produtos por marketplace
+  // Filtrar produtos por marketplace (dados vêm do contexto / planilha)
   const filteredProducts = useMemo(() => {
-    return filterProductsByMarketplace(products, selectedMarketplace);
-  }, [products, selectedMarketplace]);
+    return filterProductsByMarketplace(salesData, selectedMarketplace);
+  }, [salesData, selectedMarketplace]);
 
   // Calcular estatísticas do período selecionado
   const currentPeriodStats = useMemo(() => {
@@ -148,16 +93,6 @@ const Index = () => {
       return sum + venda;
     }, 0);
 
-    console.log('Estatísticas do período selecionado:', {
-      periodo: { from: dateRange.from, to: dateRange.to },
-      marketplace: selectedMarketplace,
-      produtosFiltrados: filteredProducts.length,
-      produtosPeriodo: periodProducts.length,
-      produtosUsados: productsToUse.length,
-      netIncome,
-      totalVendas,
-    });
-
     return { netIncome, totalVendas };
   }, [filteredProducts, dateRange, selectedMarketplace]);
 
@@ -186,30 +121,16 @@ const Index = () => {
   // Calcular mudança percentual
   const netIncomeChange = useMemo(() => {
     if (previousPeriodStats.netIncome === 0) {
-      // Se não houver dados do período anterior, retorna 0 (sem mudança)
       return 0;
     }
-    const change = ((currentPeriodStats.netIncome - previousPeriodStats.netIncome) / Math.abs(previousPeriodStats.netIncome)) * 100;
-    console.log('Mudança Net Income:', {
-      atual: currentPeriodStats.netIncome,
-      anterior: previousPeriodStats.netIncome,
-      mudanca: change
-    });
-    return change;
+    return ((currentPeriodStats.netIncome - previousPeriodStats.netIncome) / Math.abs(previousPeriodStats.netIncome)) * 100;
   }, [currentPeriodStats.netIncome, previousPeriodStats.netIncome]);
 
   const totalVendasChange = useMemo(() => {
     if (previousPeriodStats.totalVendas === 0) {
-      // Se não houver dados do período anterior, retorna 0 (sem mudança)
       return 0;
     }
-    const change = ((currentPeriodStats.totalVendas - previousPeriodStats.totalVendas) / Math.abs(previousPeriodStats.totalVendas)) * 100;
-    console.log('Mudança Total Vendas:', {
-      atual: currentPeriodStats.totalVendas,
-      anterior: previousPeriodStats.totalVendas,
-      mudanca: change
-    });
-    return change;
+    return ((currentPeriodStats.totalVendas - previousPeriodStats.totalVendas) / Math.abs(previousPeriodStats.totalVendas)) * 100;
   }, [currentPeriodStats.totalVendas, previousPeriodStats.totalVendas]);
   return (
     <div className="flex min-h-screen bg-background min-w-0">
@@ -224,61 +145,35 @@ const Index = () => {
             <DateRangePicker />
           </div>
 
-          {/* Aviso: conectar conta ML quando não há dados */}
-          {!isLoading && products.length === 0 && (
+          {/* Aviso: fazer upload da planilha quando não há dados */}
+          {!isLoadingUpload && salesData.length === 0 && (
             <Alert className="mb-4 sm:mb-6 border-primary/50 bg-primary/5">
-              <Link2 className="h-4 w-4" />
-              <AlertTitle>Conectar Mercado Livre</AlertTitle>
+              <Upload className="h-4 w-4" />
+              <AlertTitle>Faça upload da planilha</AlertTitle>
               <AlertDescription className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <span>
-                  Para carregar vendas, transações e estatísticas do Mercado Livre, autorize o app uma vez com sua conta de vendedor.
+                  Carregue uma planilha de vendas (Excel ou CSV) para ver estatísticas, gráficos e transações. Use o botão no topo da página ou clique abaixo.
                 </span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  aria-label="Upload planilha"
+                />
                 <Button
-                  onClick={handleConnectMercadoLivre}
-                  disabled={connectingMl}
+                  onClick={handleUploadClick}
+                  disabled={isLoadingUpload}
                   className="w-full sm:w-auto shrink-0"
                 >
-                  {connectingMl ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Redirecionando...
-                    </>
-                  ) : (
-                    <>
-                      <Link2 className="mr-2 h-4 w-4" />
-                      Conectar Mercado Livre
-                    </>
-                  )}
+                  <Upload className="mr-2 h-4 w-4" />
+                  {isLoadingUpload ? "Carregando..." : "Enviar planilha"}
                 </Button>
               </AlertDescription>
-              {connectError && (
-                <p className="mt-2 text-sm text-destructive">{connectError}</p>
+              {uploadError && (
+                <p className="mt-2 text-sm text-destructive">{uploadError}</p>
               )}
-              <p className="mt-2 text-xs text-muted-foreground">
-                Se o botão falhar,{" "}
-                <a
-                  href={getAuthRedirectUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-primary hover:no-underline"
-                >
-                  abra este link em nova aba
-                </a>{" "}
-                para autorizar no Mercado Livre.
-              </p>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Já autorizou? Clique em{" "}
-                <Button
-                  type="button"
-                  variant="link"
-                  className="h-auto p-0 text-primary underline"
-                  onClick={() => loadData()}
-                  disabled={isLoading}
-                >
-                  Recarregar dados
-                </Button>{" "}
-                ou atualize a página (F5).
-              </p>
             </Alert>
           )}
 
@@ -293,13 +188,13 @@ const Index = () => {
                   title="Lucro Líquido" 
                   value={currentPeriodStats.netIncome} 
                   change={Math.round(netIncomeChange)} 
-                  isLoading={isLoading}
+                  isLoading={isLoadingUpload}
                 />
                 <StatCard 
                   title="Total de Vendas" 
                   value={currentPeriodStats.totalVendas} 
                   change={Math.round(totalVendasChange)} 
-                  isLoading={isLoading}
+                  isLoading={isLoadingUpload}
                 />
               </div>
 

@@ -1,11 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
-import { format, parse, startOfMonth, endOfMonth, subMonths, eachMonthOfInterval } from "date-fns";
-import { ptBR } from "date-fns/locale/pt-BR";
+import { format, parse, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
-import { useDateRange } from "@/contexts/DateRangeContext";
-import { loadSalesData, type ProductData } from "@/lib/dataLoader";
+import { useSalesData } from "@/contexts/SalesDataContext";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 import { cn } from "@/lib/utils";
 
@@ -16,25 +14,8 @@ const monthNames = [
 
 export function RevenueChart() {
   const { selectedMarketplace } = useMarketplace();
-  const { dateRange } = useDateRange();
-  const [products, setProducts] = useState<ProductData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    loadData();
-  }, [dateRange.from, dateRange.to]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
-      setProducts(data);
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { salesData, isLoadingUpload } = useSalesData();
+  const products = salesData;
 
   const parseDataProduto = (dataStr: string): Date | null => {
     if (!dataStr) return null;
@@ -177,7 +158,7 @@ export function RevenueChart() {
       <div className="mb-3 sm:mb-4 min-w-0">
         <p className="text-2xl sm:text-3xl font-bold text-foreground break-words">
           <span className="text-base sm:text-lg align-top">R$</span>
-          {isLoading ? "Carregando..." : totalStats.totalIncome.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          {isLoadingUpload ? "Carregando..." : totalStats.totalIncome.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
         </p>
         <div className="flex items-center gap-1.5 text-sm">
           {isPositive ? (
@@ -196,7 +177,7 @@ export function RevenueChart() {
       </div>
 
       <div className="h-40">
-        {isLoading ? (
+        {isLoadingUpload ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             Carregando gráfico...
           </div>

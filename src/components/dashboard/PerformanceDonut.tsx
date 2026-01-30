@@ -1,32 +1,14 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { parse } from "date-fns";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
-import { useDateRange } from "@/contexts/DateRangeContext";
-import { loadSalesData, type ProductData } from "@/lib/dataLoader";
+import { useSalesData } from "@/contexts/SalesDataContext";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 
 export function PerformanceDonut() {
   const { selectedMarketplace } = useMarketplace();
-  const { dateRange } = useDateRange();
-  const [products, setProducts] = useState<ProductData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    loadData();
-  }, [dateRange.from, dateRange.to]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
-      setProducts(data);
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { salesData, isLoadingUpload } = useSalesData();
+  const products = salesData;
 
   const parseDataProduto = (dataStr: string): Date | null => {
     if (!dataStr) return null;
@@ -128,7 +110,7 @@ export function PerformanceDonut() {
     <div className="bg-card rounded-2xl p-5 border border-border animate-fade-in">
       <h3 className="font-semibold text-foreground mb-4">Desempenho de Vendas Diárias</h3>
 
-      {isLoading ? (
+      {isLoadingUpload ? (
         <div className="flex items-center justify-center h-44 text-muted-foreground">
           Carregando...
         </div>

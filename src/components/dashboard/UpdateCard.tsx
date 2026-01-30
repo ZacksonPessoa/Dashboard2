@@ -1,37 +1,17 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { ChevronRight } from "lucide-react";
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
-import { useDateRange } from "@/contexts/DateRangeContext";
-import { loadSalesData, type ProductData } from "@/lib/dataLoader";
+import { useSalesData } from "@/contexts/SalesDataContext";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 import { Link } from "react-router-dom";
 
 export function UpdateCard() {
   const { selectedMarketplace } = useMarketplace();
-  const { dateRange } = useDateRange();
-  const [products, setProducts] = useState<ProductData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadData();
-  }, [dateRange.from, dateRange.to]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
-      setProducts(data);
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-      setError("Erro ao carregar dados. Verifique o console.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { salesData, isLoadingUpload, uploadError } = useSalesData();
+  const products = salesData;
+  const error = uploadError;
 
   // Função para parsear data do formato do Excel
   const parseDataProduto = (dataStr: string): Date | null => {
@@ -144,7 +124,7 @@ export function UpdateCard() {
         Vendas do dia
       </p>
       <p className="text-xl sm:text-2xl font-bold text-accent mb-3 sm:mb-4 break-words">
-        {isLoading ? (
+        {isLoadingUpload ? (
           <span className="text-lg font-medium text-primary-foreground opacity-90">Carregando...</span>
         ) : error ? (
           <span className="text-lg font-medium text-destructive opacity-90">Erro ao carregar</span>

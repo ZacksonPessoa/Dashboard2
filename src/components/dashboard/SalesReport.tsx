@@ -1,34 +1,18 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { MoreHorizontal } from "lucide-react";
-import { loadProductsStats } from "@/lib/dataLoader";
+import { useSalesData } from "@/contexts/SalesDataContext";
 
 export function SalesReport() {
-  const [stats, setStats] = useState<{ productsLaunched: number; salesOfLaunchedProducts: number }>({
-    productsLaunched: 0,
-    salesOfLaunchedProducts: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const { salesData, productCosts, isLoadingUpload } = useSalesData();
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await loadProductsStats();
-      setStats(data);
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Métricas da API (produtos lançados e vendas desses produtos)
+  // Produtos lançados = produtos com custo cadastrado; vendas de produtos lançados = vendas cujo produto/sku está em productCosts
   const reportData = useMemo(() => {
-    const produtosLancados = stats.productsLaunched;
-    const vendasProdutosLancados = stats.salesOfLaunchedProducts;
+    const produtosLancados = productCosts.length;
+    const titulosOuSkus = new Set(productCosts.map((p) => p.titulo.trim().toLowerCase()));
+    const vendasProdutosLancados = salesData.filter((v) => {
+      const key = (v.produto || v.sku || "").trim().toLowerCase();
+      return key && titulosOuSkus.has(key);
+    }).length;
     const maxValue = Math.max(produtosLancados, vendasProdutosLancados, 1);
 
     const data = [
@@ -47,7 +31,7 @@ export function SalesReport() {
     ];
 
     return { data, maxValue };
-  }, [stats]);
+  }, [salesData, productCosts]);
 
   // Calcular escala do eixo X
   const scaleMax = useMemo(() => {
@@ -77,7 +61,7 @@ export function SalesReport() {
         </button>
       </div>
 
-      {isLoading ? (
+      {isLoadingUpload ? (
         <div className="flex items-center justify-center py-8 text-muted-foreground">
           Carregando...
         </div>

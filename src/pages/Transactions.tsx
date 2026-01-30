@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { ArrowLeft, Search } from "lucide-react";
@@ -8,8 +8,7 @@ import { Header } from "@/components/dashboard/Header";
 import { DateRangePicker } from "@/components/dashboard/DateRangePicker";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
 import { useDateRange } from "@/contexts/DateRangeContext";
-import { loadSalesData } from "@/lib/dataLoader";
-import type { ProductData } from "@/lib/excelReader";
+import { useSalesData } from "@/contexts/SalesDataContext";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -17,25 +16,9 @@ import { cn } from "@/lib/utils";
 const Transactions = () => {
   const { selectedMarketplace } = useMarketplace();
   const { dateRange } = useDateRange();
-  const [products, setProducts] = useState<ProductData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { salesData, isLoadingUpload } = useSalesData();
   const [searchTerm, setSearchTerm] = useState("");
-
-  useEffect(() => {
-    loadData();
-  }, [dateRange.from, dateRange.to]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
-      setProducts(data);
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const products = salesData;
 
   const parseDataProduto = (dataStr: string): Date | null => {
     if (!dataStr) return null;
@@ -157,7 +140,7 @@ const Transactions = () => {
 
           {/* Lista de transações */}
           <div className="bg-card rounded-xl sm:rounded-2xl border border-border">
-            {isLoading ? (
+            {isLoadingUpload ? (
               <div className="p-6 sm:p-8 text-center text-muted-foreground">
                 Carregando transações...
               </div>
@@ -232,7 +215,7 @@ const Transactions = () => {
           </div>
 
           {/* Resumo */}
-          {!isLoading && filteredTransactions.length > 0 && (
+          {!isLoadingUpload && filteredTransactions.length > 0 && (
             <div className="mt-6 p-4 bg-secondary/30 rounded-lg">
               <p className="text-sm text-muted-foreground">
                 Total de transações: <span className="font-semibold text-foreground">{filteredTransactions.length}</span>

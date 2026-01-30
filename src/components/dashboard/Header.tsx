@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Search, Calendar as CalendarIcon, Users, Plus } from "lucide-react";
+import { useState, useRef } from "react";
+import { Search, Calendar as CalendarIcon, Users, Plus, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,10 +17,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
+import { useSalesData } from "@/contexts/SalesDataContext";
 
 export function Header() {
   const { selectedMarketplace, setSelectedMarketplace } = useMarketplace();
+  const { uploadSalesFile, isLoadingUpload } = useSalesData();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadClick = () => fileInputRef.current?.click();
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadSalesFile(file);
+      e.target.value = "";
+    }
+  };
 
   const handleMarketplaceChange = (value: string) => {
     setSelectedMarketplace(value);
@@ -89,6 +101,26 @@ export function Header() {
         
         <Button variant="ghost" size="icon" className="hidden sm:flex shrink-0 text-muted-foreground hover:text-foreground h-9 w-9">
           <Users className="w-5 h-5" />
+        </Button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls,.csv"
+          className="hidden"
+          onChange={handleFileChange}
+          aria-label="Upload planilha"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="shrink-0 h-9 px-3 gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
+          onClick={handleUploadClick}
+          disabled={isLoadingUpload}
+        >
+          <Upload className="w-4 h-4 shrink-0" />
+          <span className="hidden sm:inline">{isLoadingUpload ? "Carregando..." : "Upload planilha"}</span>
         </Button>
 
         <Button className="bg-foreground text-background hover:bg-foreground/90 gap-1.5 sm:gap-2 text-xs sm:text-sm shrink-0 h-9 px-3 sm:px-4">

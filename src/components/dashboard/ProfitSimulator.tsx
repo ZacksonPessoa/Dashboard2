@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Calculator, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { loadProductCosts, type ProductCost } from "@/lib/dataLoader";
+import { useSalesData } from "@/contexts/SalesDataContext";
 
 interface ProfitSimulatorProps {
   trigger?: React.ReactNode;
@@ -28,39 +28,14 @@ interface ProfitSimulatorProps {
 
 export function ProfitSimulator({ trigger }: ProfitSimulatorProps) {
   const [open, setOpen] = useState(false);
-  const [products, setProducts] = useState<ProductCost[]>([]);
+  const { productCosts, isLoadingUpload } = useSalesData();
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [precoVenda, setPrecoVenda] = useState("");
   const [impostos, setImpostos] = useState("");
   const [taxas, setTaxas] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (open && products.length === 0) {
-      loadProducts();
-    }
-  }, [open]);
-
-  const loadProducts = async () => {
-    setIsLoading(true);
-    try {
-      const data = await loadProductCosts();
-      setProducts(data);
-    } catch (error) {
-      console.error("Erro ao carregar produtos:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  const products = productCosts;
   const selectedProductData = products.find(p => p.titulo === selectedProduct);
-
-  // Quando um produto é selecionado, preenche automaticamente custo, comissão e frete
-  useEffect(() => {
-    if (selectedProductData) {
-      // Os valores já vêm do CSV
-    }
-  }, [selectedProductData]);
 
   const custo = selectedProductData?.custo || 0;
   const comissao = selectedProductData?.comissao || 0;
@@ -112,10 +87,10 @@ export function ProfitSimulator({ trigger }: ProfitSimulatorProps) {
             <Select
               value={selectedProduct}
               onValueChange={setSelectedProduct}
-              disabled={isLoading}
+              disabled={isLoadingUpload}
             >
               <SelectTrigger>
-                <SelectValue placeholder={isLoading ? "Carregando produtos..." : "Selecione um produto"} />
+                <SelectValue placeholder={isLoadingUpload ? "Carregando produtos..." : "Selecione um produto"} />
               </SelectTrigger>
               <SelectContent>
                 {products.map((product, index) => (

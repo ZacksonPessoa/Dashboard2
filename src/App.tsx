@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { MarketplaceProvider } from "@/contexts/MarketplaceContext";
 import { DateRangeProvider } from "@/contexts/DateRangeContext";
+import { SalesDataProvider } from "@/contexts/SalesDataContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Statistics from "./pages/Statistics";
@@ -35,9 +36,10 @@ const App = () => (
       <AuthProvider>
         <MarketplaceProvider>
           <DateRangeProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+            <SalesDataProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
               <Routes>
                 <Route path="/login" element={<LoginRoute />} />
                 <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
@@ -45,7 +47,8 @@ const App = () => (
                 <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
+              </BrowserRouter>
+            </SalesDataProvider>
           </DateRangeProvider>
         </MarketplaceProvider>
       </AuthProvider>

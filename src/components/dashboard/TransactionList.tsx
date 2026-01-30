@@ -1,13 +1,11 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
-import { format, parse, isToday } from "date-fns";
+import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { cn } from "@/lib/utils";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
-import { useDateRange } from "@/contexts/DateRangeContext";
-import { loadSalesData } from "@/lib/dataLoader";
-import type { ProductData } from "@/lib/excelReader";
+import { useSalesData } from "@/contexts/SalesDataContext";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 
 // Função para obter ícone baseado no nome do produto
@@ -33,29 +31,13 @@ const getProductIcon = (productName: string): string => {
 export function TransactionList() {
   const navigate = useNavigate();
   const { selectedMarketplace } = useMarketplace();
-  const { dateRange } = useDateRange();
-  const [products, setProducts] = useState<ProductData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { salesData, isLoadingUpload } = useSalesData();
 
   const handleCardClick = () => {
     navigate("/transactions");
   };
 
-  useEffect(() => {
-    loadData();
-  }, [dateRange.from, dateRange.to]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
-      setProducts(data);
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const products = salesData;
 
   const parseDataProduto = (dataStr: string): Date | null => {
     if (!dataStr) return null;
@@ -163,7 +145,7 @@ export function TransactionList() {
       </div>
 
       <div className="space-y-2 sm:space-y-3 max-h-[260px] sm:max-h-[350px] md:max-h-[380px] overflow-y-auto pr-1 sm:pr-2 -mr-1 sm:mr-0">
-        {isLoading ? (
+        {isLoadingUpload ? (
           <div className="text-center py-8 text-muted-foreground">
             Carregando transações...
           </div>

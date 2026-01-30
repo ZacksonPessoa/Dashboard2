@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Calculator, Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
@@ -23,46 +23,17 @@ import {
   Legend, 
   ResponsiveContainer 
 } from "recharts";
-import { loadSalesData, type ProductData } from "@/lib/dataLoader";
+import { useSalesData } from "@/contexts/SalesDataContext";
 import { filterProductsByMarketplace } from "@/lib/marketplaceFilter";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
 import { useDateRange } from "@/contexts/DateRangeContext";
 import { cn } from "@/lib/utils";
 
 const Statistics = () => {
-  const [products, setProducts] = useState<ProductData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { salesData, isLoadingUpload } = useSalesData();
   const { selectedMarketplace } = useMarketplace();
   const { dateRange } = useDateRange();
-
-  useEffect(() => {
-    loadData();
-  }, [dateRange.from, dateRange.to]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      console.log("Iniciando carregamento de dados...");
-      const data = await loadSalesData({ from: dateRange.from, to: dateRange.to });
-      console.log(`Dados carregados: ${data.length} produtos`);
-      if (data.length > 0) {
-        console.log("Primeiro produto:", data[0]);
-        console.log("Exemplo de dados:", {
-          produto: data[0].produto,
-          precoVenda: data[0].precoVenda,
-          custo: data[0].custo,
-          lucroReal: data[0].lucroReal,
-          margem: data[0].margem,
-        });
-      }
-      setProducts(data);
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-      alert("Erro ao carregar dados. Verifique o console para mais detalhes.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const products = salesData;
 
   // Filtrar produtos por marketplace
   const filteredProducts = useMemo(() => {
@@ -155,7 +126,7 @@ const Statistics = () => {
           </div>
 
           {/* Loading State */}
-          {isLoading && (
+          {isLoadingUpload && (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
               <span className="ml-2 text-muted-foreground">Carregando dados...</span>
@@ -163,7 +134,7 @@ const Statistics = () => {
           )}
 
           {/* Stats Cards */}
-          {!isLoading && stats && (
+          {!isLoadingUpload && stats && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 mb-4 sm:mb-6">
               <StatCard 
                 title="Receita Total" 
@@ -189,7 +160,7 @@ const Statistics = () => {
           )}
 
           {/* Gráficos */}
-          {!isLoading && chartData && (
+          {!isLoadingUpload && chartData && (
             <>
               {/* Análise de Produtos e Pedidos */}
               {filteredProducts.length > 0 && (
@@ -307,7 +278,7 @@ const Statistics = () => {
           )}
 
           {/* Mensagem quando não há dados */}
-          {!isLoading && filteredProducts.length === 0 && (
+          {!isLoadingUpload && filteredProducts.length === 0 && (
             <Card className="border-border">
               <CardContent className="py-12 text-center">
                 <Loader2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
