@@ -1,13 +1,9 @@
 import { useState } from "react";
-import { 
-  LayoutGrid, 
-  BarChart3, 
-  Receipt,
-  Menu
-} from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { LayoutGrid, BarChart3, Receipt, Menu, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
@@ -19,6 +15,13 @@ const menuItems = [
 
 const SidebarContent = () => {
   const location = useLocation();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <>
@@ -91,18 +94,29 @@ const SidebarContent = () => {
       </div>
 
       {/* User Profile */}
-      <div className="flex items-center gap-3 px-2 py-3 mt-4 border-t border-sidebar-border">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-semibold">
-          F
+      <div className="mt-4 border-t border-sidebar-border pt-3 space-y-2">
+        <div className="flex items-center gap-3 px-2">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-semibold shrink-0">
+            {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sidebar-foreground text-sm font-medium truncate">
+              {user?.name ?? "Usuário"}
+            </p>
+            <p className="text-sidebar-muted text-xs truncate">
+              {user?.email ?? ""}
+            </p>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sidebar-foreground text-sm font-medium truncate">
-            Fandaww Punx
-          </p>
-          <p className="text-sidebar-muted text-xs truncate">
-            fandaww6@gmail.com
-          </p>
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start gap-2 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+          onClick={handleLogout}
+        >
+          <LogOut className="w-4 h-4" />
+          Sair
+        </Button>
       </div>
     </>
   );
