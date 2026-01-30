@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Calculator, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,9 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useSalesData } from "@/contexts/SalesDataContext";
+import type { ProductCost } from "@/lib/dataLoader";
+
+type SimulatorProduct = ProductCost & { precoVenda?: number };
 
 interface ProfitSimulatorProps {
   trigger?: React.ReactNode;
@@ -28,14 +31,52 @@ interface ProfitSimulatorProps {
 
 export function ProfitSimulator({ trigger }: ProfitSimulatorProps) {
   const [open, setOpen] = useState(false);
-  const { productCosts, isLoadingUpload } = useSalesData();
+  const { salesData, productCosts, isLoadingUpload } = useSalesData();
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [precoVenda, setPrecoVenda] = useState("");
   const [impostos, setImpostos] = useState("");
   const [taxas, setTaxas] = useState("");
 
-  const products = productCosts;
+  // Lista de produtos: planilha de custos + planilha de vendas (custo, comissão, frete e preço de venda)
+  const products = useMemo((): SimulatorProduct[] => {
+    const byTitle = new Map<string, SimulatorProduct>();
+    // Primeiro: planilha de vendas (última ocorrência define custo, comissão, frete e preço de venda)
+    salesData.forEach((row) => {
+      const nome = (row.produto || row.sku || "").toString().trim();
+      if (!nome) return;
+      const custo = row.custo ?? 0;
+      const comissao = row.comissao ?? 0;
+      const frete = row.frete ?? 0;
+      const precoVendaRow = row.precoVenda ?? 0;
+      byTitle.set(nome, {
+        titulo: nome,
+        custo,
+        comissao: comissao > 0 ? comissao : undefined,
+        frete: frete > 0 ? frete : undefined,
+        precoVenda: precoVendaRow > 0 ? precoVendaRow : undefined,
+      });
+    });
+    // Depois: planilha de custos sobrescreve (mantém precoVenda da vendas quando existir)
+    productCosts.forEach((p) => {
+      const existing = byTitle.get(p.titulo.trim());
+      byTitle.set(p.titulo.trim(), {
+        ...p,
+        precoVenda: existing?.precoVenda,
+      });
+    });
+    return Array.from(byTitle.values()).filter((p) => p.titulo);
+  }, [salesData, productCosts]);
+
   const selectedProductData = products.find(p => p.titulo === selectedProduct);
+
+  // Preencher Preço de Venda automaticamente ao selecionar produto (valor da planilha de vendas)
+  useEffect(() => {
+    if (selectedProductData?.precoVenda != null && selectedProductData.precoVenda > 0) {
+      setPrecoVenda(String(selectedProductData.precoVenda));
+    } else if (selectedProduct) {
+      setPrecoVenda("");
+    }
+  }, [selectedProduct, selectedProductData?.precoVenda]);
 
   const custo = selectedProductData?.custo || 0;
   const comissao = selectedProductData?.comissao || 0;
@@ -85,16 +126,24 @@ export function ProfitSimulator({ trigger }: ProfitSimulatorProps) {
           <div className="space-y-2">
             <Label htmlFor="produto">Selecione o Produto</Label>
             <Select
-              value={selectedProduct}
+              value={selectedProduct || undefined}
               onValueChange={setSelectedProduct}
-              disabled={isLoadingUpload}
+              disabled={isLoadingUpload || products.length === 0}
             >
               <SelectTrigger>
-                <SelectValue placeholder={isLoadingUpload ? "Carregando produtos..." : "Selecione um produto"} />
+                <SelectValue
+                  placeholder={
+                    isLoadingUpload
+                      ? "Carregando produtos..."
+                      : products.length === 0
+                        ? "Carregue a planilha de vendas para ver os produtos"
+                        : "Selecione um produto"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {products.map((product, index) => (
-                  <SelectItem key={index} value={product.titulo}>
+                  <SelectItem key={`${product.titulo}-${index}`} value={product.titulo}>
                     {product.titulo}
                   </SelectItem>
                 ))}
@@ -141,7 +190,7 @@ export function ProfitSimulator({ trigger }: ProfitSimulatorProps) {
               <p className="text-xs text-muted-foreground">Preenchido automaticamente</p>
             </div>
 
-            {/* Campos para digitar */}
+            {/* Preço de Venda: preenchido da planilha ou digitado */}
             <div className="space-y-2">
               <Label htmlFor="precoVenda">Preço de Venda (R$)</Label>
               <Input
@@ -152,6 +201,9 @@ export function ProfitSimulator({ trigger }: ProfitSimulatorProps) {
                 value={precoVenda}
                 onChange={(e) => setPrecoVenda(e.target.value)}
               />
+              {selectedProductData?.precoVenda != null && selectedProductData.precoVenda > 0 && (
+                <p className="text-xs text-muted-foreground">Preenchido automaticamente</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="impostos">Impostos (%)</Label>

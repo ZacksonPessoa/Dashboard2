@@ -91,6 +91,16 @@ function processExcelData(rawData: any[]): ProductData[] {
     }
     return null;
   };
+
+  // Converte valor da célula para número (aceita "12,50", "R$ 12,50", 12.5)
+  const parseNumber = (val: unknown): number => {
+    if (val == null || val === "") return 0;
+    if (typeof val === "number" && !Number.isNaN(val)) return val;
+    const str = String(val).trim();
+    if (!str) return 0;
+    const cleaned = str.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
+    return Math.abs(parseFloat(cleaned) || 0);
+  };
   
   // Processa cada linha
   const processed: ProductData[] = [];
@@ -103,10 +113,10 @@ function processExcelData(rawData: any[]): ProductData[] {
     // Tenta mapear os campos comuns
     const produtoIdx = getColumn(['produto', 'product', 'nome', 'descrição', 'descricao']);
     const skuIdx = getColumn(['sku', 'código', 'codigo', 'id']);
-    const precoIdx = getColumn(['preço', 'preco', 'preço de venda', 'preco de venda', 'valor', 'price']);
+    const precoIdx = getColumn(['receita por produtos (brl)', 'preço', 'preco', 'preço de venda', 'preco de venda', 'valor', 'price']);
     const custoIdx = getColumn(['custo', 'custo do produto', 'cost']);
-    const comissaoIdx = getColumn(['comissão', 'comissao', 'taxa', 'fee']);
-    const freteIdx = getColumn(['frete', 'shipping', 'envio']);
+    const comissaoIdx = getColumn(['tarifa de venda e impostos', 'tarifa de vendas', 'tarifa vendas', 'comissão marketplace', 'comissao marketplace', 'comissão', 'comissao', 'taxa', 'fee']);
+    const freteIdx = getColumn(['tarifas de envio', 'tarifa de envio', 'tarifas envio', 'frete', 'shipping', 'envio', 'custo de envio']);
     const impostosIdx = getColumn(['impostos', 'tax', 'imposto']);
     const taxasIdx = getColumn(['taxas', 'taxas extras', 'outras taxas']);
     const pedidoIdx = getColumn(['pedido', 'order', 'ordem']);
@@ -115,10 +125,10 @@ function processExcelData(rawData: any[]): ProductData[] {
     
     if (produtoIdx !== null) product.produto = row[produtoIdx]?.toString() || '';
     if (skuIdx !== null) product.sku = row[skuIdx]?.toString() || '';
-    if (precoIdx !== null) product.precoVenda = parseFloat(row[precoIdx]) || 0;
-    if (custoIdx !== null) product.custo = parseFloat(row[custoIdx]) || 0;
-    if (comissaoIdx !== null) product.comissao = parseFloat(row[comissaoIdx]) || 0;
-    if (freteIdx !== null) product.frete = parseFloat(row[freteIdx]) || 0;
+    if (precoIdx !== null) product.precoVenda = parseNumber(row[precoIdx]);
+    if (custoIdx !== null) product.custo = parseNumber(row[custoIdx]);
+    if (comissaoIdx !== null) product.comissao = parseNumber(row[comissaoIdx]);
+    if (freteIdx !== null) product.frete = parseNumber(row[freteIdx]);
     if (impostosIdx !== null) product.impostos = parseFloat(row[impostosIdx]) || 0;
     if (taxasIdx !== null) product.taxas = parseFloat(row[taxasIdx]) || 0;
     if (pedidoIdx !== null) product.pedido = row[pedidoIdx]?.toString() || '';

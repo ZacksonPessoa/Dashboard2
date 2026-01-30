@@ -152,7 +152,7 @@ const Index = () => {
               <AlertTitle>Faça upload da planilha</AlertTitle>
               <AlertDescription className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <span>
-                  Carregue uma planilha de vendas (Excel ou CSV) para ver estatísticas, gráficos e transações. Use o botão no topo da página ou clique abaixo.
+                  Carregue a planilha de vendas (Excel ou CSV) para estatísticas e transações. Para o Simulador de Lucro preencher o Custo do Produto, envie também a planilha de custos (botão &quot;Custos&quot; no topo).
                 </span>
                 <input
                   ref={fileInputRef}

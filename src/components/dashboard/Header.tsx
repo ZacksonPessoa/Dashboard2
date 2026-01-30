@@ -21,15 +21,24 @@ import { useSalesData } from "@/contexts/SalesDataContext";
 
 export function Header() {
   const { selectedMarketplace, setSelectedMarketplace } = useMarketplace();
-  const { uploadSalesFile, isLoadingUpload } = useSalesData();
+  const { uploadSalesFile, uploadCostsFile, isLoadingUpload } = useSalesData();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const salesInputRef = useRef<HTMLInputElement>(null);
+  const costsInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUploadClick = () => fileInputRef.current?.click();
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSalesUploadClick = () => salesInputRef.current?.click();
+  const handleCostsUploadClick = () => costsInputRef.current?.click();
+  const handleSalesFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       uploadSalesFile(file);
+      e.target.value = "";
+    }
+  };
+  const handleCostsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadCostsFile(file);
       e.target.value = "";
     }
   };
@@ -104,23 +113,42 @@ export function Header() {
         </Button>
 
         <input
-          ref={fileInputRef}
+          ref={salesInputRef}
           type="file"
           accept=".xlsx,.xls,.csv"
           className="hidden"
-          onChange={handleFileChange}
-          aria-label="Upload planilha"
+          onChange={handleSalesFileChange}
+          aria-label="Upload planilha de vendas"
+        />
+        <input
+          ref={costsInputRef}
+          type="file"
+          accept=".xlsx,.xls,.csv"
+          className="hidden"
+          onChange={handleCostsFileChange}
+          aria-label="Upload planilha de custos"
         />
         <Button
           type="button"
           variant="outline"
           size="sm"
           className="shrink-0 h-9 px-3 gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
-          onClick={handleUploadClick}
+          onClick={handleSalesUploadClick}
           disabled={isLoadingUpload}
         >
           <Upload className="w-4 h-4 shrink-0" />
-          <span className="hidden sm:inline">{isLoadingUpload ? "Carregando..." : "Upload planilha"}</span>
+          <span className="hidden sm:inline">{isLoadingUpload ? "Carregando..." : "Vendas"}</span>
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="shrink-0 h-9 px-3 gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
+          onClick={handleCostsUploadClick}
+          disabled={isLoadingUpload}
+        >
+          <Upload className="w-4 h-4 shrink-0" />
+          <span className="hidden sm:inline">{isLoadingUpload ? "Carregando..." : "Custos"}</span>
         </Button>
 
         <Button className="bg-foreground text-background hover:bg-foreground/90 gap-1.5 sm:gap-2 text-xs sm:text-sm shrink-0 h-9 px-3 sm:px-4">
